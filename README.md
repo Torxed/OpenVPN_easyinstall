@@ -20,6 +20,8 @@ TODOs
  - Add the actual remote copy (including windows based destinations)
  - Add support to variable DH size, at the moment it only goes for the standard one
  - output the config to .ovpn files, as of now it's just stored in memory.
+ - take openvpn config input for client and server, as of now it just build config files according to my liking.
+ - If possible, start OpenVPN server and at least 1 client and verify connection in the setup script.
 
 Example
 =======
