@@ -16,6 +16,7 @@ Introduction
 TODOs
 =====
 
+ - Clean up the two bash-scripts and if possible replace with a Python Popen('bash|cmd') session
  - Make the client number optional (incl naming of certificates)
  - Add the actual remote copy (including windows based destinations)
  - Add support to variable DH size, at the moment it only goes for the standard one
