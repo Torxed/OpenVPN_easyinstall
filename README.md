@@ -2,8 +2,17 @@ OpenVPN_easyinstall
 ===================
 
 Python based OpenVPN 2.X installer &amp; configurator
+
+**There are two modles**
+ - the online installer:
+
 ![Visual representation](https://drive.google.com/uc?export=download&id=0B1eeO3A_DUEtaTJsbXFuNHpmNmc)
 
+---------------------
+ - The offline installer
+ 
+Does everything the online installer does except deploy and test the connection.
+It simply builds and packages everything according to the specifications and stores it locally.
 
 Introduction
 ============
