@@ -5,7 +5,9 @@ Python based OpenVPN 2.X installer &amp; configurator<br>
 <br>
 <br>
 <br>
+
 **There are two modles**
+
 ---------------------
  - the online installer:
 
@@ -17,6 +19,7 @@ Python based OpenVPN 2.X installer &amp; configurator<br>
  
 Does everything the online installer does except deploy and test the connection.
 It simply builds and packages everything according to the specifications and stores it locally.
+
 ---------------------
 
 
