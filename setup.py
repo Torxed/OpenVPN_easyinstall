@@ -54,8 +54,8 @@ def precheck(checks = []):
 	checks.append('openvpn 2' in s('openvpn --version').lower())
 	checks.append('openssl 0' in s('openssl version').lower())
 	s('updatedb') # refresh locate index
-	conf['clienttemplate'] = s('locate .conf | egrep "(openvpn).*client\.conf"').split('\n')[0]
-	conf['servertemplate'] = s('locate .conf | egrep "(openvpn).*server\.conf"').split('\n')[0]
+	conf['clienttemplate'] = s('find / | grep "\.conf" | egrep "(openvpn).*client\.conf"').split('\n')[0]
+	conf['servertemplate'] = s('find / | grep "\.conf" | egrep "(openvpn).*server\.conf"').split('\n')[0]
 
 	# Sometimes the example configs is packaged in .gz files,
 	# this will check the found file for .gz and unpack it.
@@ -189,8 +189,8 @@ cp(keydir + '/ca.crt', cwd + '/keys/server/')
 cp(keydir + '/logclient.crt', cwd + '/keys/client/logclient/')
 cp(keydir + '/logclient.key', cwd + '/keys/client/logclient/')
 
-sys.stdout.write(servconf
-sys.stdout.write(cliconf
+sys.stdout.write(servconf)
+sys.stdout.write(cliconf)
 sys.stdout.flush()
 
 # if windows:
