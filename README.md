@@ -2,8 +2,8 @@ OpenVPN_easyinstall
 ===================
 
 Python based OpenVPN 2.X installer &amp; configurator<br>
+(_Requires Linux/Unix_)
 <br>
-__Requires Linux/Unix__
 <br>
 <br>
 
