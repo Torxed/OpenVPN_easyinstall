@@ -85,10 +85,11 @@ def getconf(c):
 	return cliconf
 
 if not precheck():
-	print 'One or more required prequesits was not met:'
-	print ' * OpenVPN 2.X'
-	print ' * OpenSSL 0.X (0.9.X)'
-	print ' * Server & Client templates somehere on the machine'
+	sys.stdout.write('One or more required prequesits was not met:')
+	sys.stdout.write(' * OpenVPN 2.X')
+	sys.stdout.write(' * OpenSSL 0.X (0.9.X)')
+	sys.stdout.write(' * Server & Client templates somehere on the machine')
+	sys.stdout.flush()
 	_exit(1)
 
 
@@ -188,5 +189,9 @@ cp(keydir + '/ca.crt', cwd + '/keys/server/')
 cp(keydir + '/logclient.crt', cwd + '/keys/client/logclient/')
 cp(keydir + '/logclient.key', cwd + '/keys/client/logclient/')
 
-print servconf
-print cliconf
+sys.stdout.write(servconf
+sys.stdout.write(cliconf
+sys.stdout.flush()
+
+# if windows:
+# sysfunc('netsh int ip set int <OpenVPN or name of the network tap> metric=5')
