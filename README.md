@@ -1,8 +1,8 @@
 OpenVPN_easyinstall
 ===================
 
-Python2.X (Will be ported to 3.X later) based OpenVPN 2.X installer &amp; configurator<br>
-( *Requires Linux/Unix on the easy install machine for now, will be converted later* )
+Python2+ based OpenVPN 2.X configurator &amp; installer<br>
+( *Requires Linux/Unix on the easy-install machine for now, will be converted later* )
 <br>
 <br>
 <br>
@@ -21,31 +21,31 @@ Python2.X (Will be ported to 3.X later) based OpenVPN 2.X installer &amp; config
 Does everything the online installer does except deploy and test the connection.
 It simply builds and packages everything according to the specifications and stores it locally.
 
+The result is zip files in ./ from wherever the script was called for each client and a server.zip for the server.
+
 ---------------------
 
 
-Introduction
+Intention with Easy-Install
 ============
 
- - Installs all binaries
+ - Installs all binaries (havn't descided if this is a good idea yet)
  - Generates all certificates
  - Generates configure files
- - Places everything in the proper place (even remote destinations)
+ - Places everything in the proper place (even remote destinations in v1.0)
 
 
 TODOs
 =====
 
- - Clean up the two bash-scripts and if possible replace with a Python Popen('bash|cmd') session
- - Make the client number optional (incl naming of certificates)
+ - Support configuration parameters instead of variables in the top of the code
  - Add the actual remote copy (including windows based destinations)
- - Add support to variable DH size, at the moment it only goes for the standard one
- - output the config to .ovpn files, as of now it's just stored in memory.
- - take openvpn config input for client and server, as of now it just build config files according to my liking.
+ - Add support to variable DH size, at the moment it only goes for the standard one (partially implemented)
+ - Make the configuration generation more dynamic.
  - If possible, start OpenVPN server and at least 1 client and verify connection in the setup script.
 
 Example
 =======
 As simple as pi:
-``./setup.py``
-and watch your ./keys/ directory.
+``./setup.py`` or ``python setup.py``
+and watch your ./ directory for the *.zip files.
