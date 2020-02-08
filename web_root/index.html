@@ -66,10 +66,12 @@
 					socket.clear_subscribers();
 
 					if(localStorage.getItem('obtain.life.token')) {
-						let main_area = show_main();
-						let view = new configuration_overview(main_area);
+						clear_base();
+						build_sidemenu(document.querySelector('.leftSide'))
+						let view = new configuration_overview(document.querySelector('.rightSide'));
 					} else {
-						show_login();
+						clear_base();
+						let view = new show_login(document.querySelector('.rightSide'));
 					}
 
 					clearInterval(loader);
@@ -88,17 +90,21 @@
 			})
 		}
 
-		function show_main() {
+		function clear_base() {
 			let leftSide = document.querySelector('.leftSide');
 			let rightSide = document.querySelector('.rightSide');
 			leftSide.innerHTML = '';
 			rightSide.innerHTML = '';
 
-			let categoriesHeader = create_html_obj('div', {'classList' : 'header dark'}, leftSide);
+			return rightSide;
+		}
+
+		function build_sidemenu(container) {
+			let categoriesHeader = create_html_obj('div', {'classList' : 'header dark'}, container);
 			let logoname_holder = create_html_obj('div', {'classList' : 'logoholder'}, categoriesHeader)
 			let logoname = create_html_obj('h3', {'classList' : 'logname', 'innerHTML' : 'OpenVPN Admin'}, logoname_holder)
 
-			let profileBox = create_html_obj('div', {'classList' : 'profileBox'}, leftSide);
+			let profileBox = create_html_obj('div', {'classList' : 'profileBox'}, container);
 			let profileIcon = create_html_obj('div', {'classList' : 'profilePhoto'}, profileBox);
 			let profileInfo = create_html_obj('div', {'classList' : 'profileInfo'}, profileBox);
 			let profilename = create_html_obj('span', {'classList' : 'profilename', 'innerHTML' : 'Anton Hvornum'}, profileInfo);
@@ -106,103 +112,10 @@
 
 			let categories = ['Configuration <i>(server)</i>', 'Certificates', 'Users & Clients'];
 			categories.forEach((category) => {
-				let categoryObj = create_html_obj('div', {'classList' : 'category'}, leftSide);
+				let categoryObj = create_html_obj('div', {'classList' : 'category'}, container);
 				let categoryHeader = create_html_obj('div', {'classList' : 'subheader', 'innerHTML' : category}, categoryObj);
 				if(category == 'Configuration <i>(server)</i>')
 					categoryHeader.classList.toggle('active');
-			})
-
-			return rightSide;
-		}
-
-		function show_login() {
-			document.querySelector('.body').classList = 'body loginview';
-
-			let header = document.querySelector('.header');
-			let stylebar = create_html_obj('div', {'classList' : 'stylebar'}, header)
-			let menu = create_html_obj('div', {'classList' : 'menu'}, header)
-			let logo = create_html_obj('div', {'classList' : 'logo'}, menu)
-
-			stylebar.innerHTML = 'Vmanager v0.3';
-
-			// Buttons:
-			let tmp = null;
-			tmp = create_html_obj('div', {'classList' : 'button active', 'id' : 'btn_login'}, menu);
-			tmp.innerHTML = 'Login'
-
-			// Main content:
-			let loginbox = create_html_obj('div', {'classList' : 'loginbox'}, document.querySelector('.body'));
-			let loginStylebar = create_html_obj('div', {'classList' : 'stylebar'}, loginbox);
-			let title = create_html_obj('h3', {'classList' : 'title', 'innerHTML' : 'Login'}, loginStylebar)
-			let username = create_html_obj('input', {'classList' : 'input'}, loginbox);
-			let password = create_html_obj('input', {'classList' : 'input'}, loginbox);
-			let loginbutton = create_html_obj('button', {'classList' : 'button'}, loginbox);
-			let footer = create_html_obj('div', {'classList' : 'footer'}, loginbox);
-			let span = create_html_obj('span', {'classList' : 'footerdescription'}, footer);
-			span.innerHTML = 'Authentication is provided by <a target="_blank" href="https://obtain.life">Obtain Life</a>.<br>Obtain Life is an open source Identity Manager.';
-
-			username.placeholder = 'username'
-			password.type = 'password';
-			password.placeholder = 'password'
-			loginbutton.innerHTML = 'Login using Obtain Life'
-			loginbutton.style.margin = '5px';
-
-			loginbutton.addEventListener('click', () => {
-				olife_socket.subscribe('auth', (data) => {
-					if(data['status'] == 'success' && typeof data['2FA'] !== 'undefined') {
-						//if(typeof data['challenge'] !== 'undefined' && typeof data['challenge_page'] !== 'undefined') {
-						//	localStorage.setItem('obtain.life.claim_challenge', data['challenge']);
-						//	window.location.href = data['challenge_page']+'?domain='+data['domain'];
-						//}
-
-						let popup_body = document.createElement('div');
-						let two_factor_code = document.createElement('input');
-						let inputs = document.createElement('div');
-						
-						inputs.classList = 'inputs';
-						popup_body.classList = 'card';
-						two_factor_code.type = 'text';
-						two_factor_code.id = 'two_factor_code';
-						two_factor_code.placeholder = 'Two factor code';
-						two_factor_code.classList = 'input';
-
-						let popup_header = document.createElement('div');
-						popup_header.classList = 'header';
-						popup_header.innerHTML = '<i>(code has been sent to your e-mail)</i>';
-
-						popup_body.appendChild(popup_header);
-						inputs.appendChild(two_factor_code);
-						popup_body.appendChild(inputs);
-
-						let obj = popup("Two factor authentication", popup_body, {
-							"OK" : function(div) {
-								let two_factor_payload = {
-									"alg": life.mode,
-									"domain": life.domain,
-									"_module": "2FA",
-									"2FA": data['2FA'],
-									"code": parseInt(two_factor_code.value)
-								};
-								life.sign(two_factor_payload, function(signature) {
-									two_factor_payload['sign'] = signature
-									olife_socket.send(two_factor_payload);
-								})
-							}
-						});
-
-						two_factor_code.focus();
-						obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
-						obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
-						console.log();
-					} else if (data['status'] == 'success' && typeof data['token'] !== 'undefined') {
-						localStorage.setItem('obtain.life.token', data['token']);
-						window.location.href = '/';
-					} 
-				})
-
-				life.login(username.value, password.value, (payload) => {
-					olife_socket.send(payload);
-				});
 			})
 		}
 	</script>

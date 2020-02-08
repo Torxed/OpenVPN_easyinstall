@@ -7,6 +7,7 @@ from select import epoll, EPOLLIN, EPOLLHUP
 
 ## https://openvpn.net/community-resources/reference-manual-for-openvpn-2-4/
 ## https://openvpn.net/community-resources/management-interface/
+## https://forums.openvpn.net/viewtopic.php?t=23227
 
 def sig_handler(signal, frame):
 	for handler in handlers:

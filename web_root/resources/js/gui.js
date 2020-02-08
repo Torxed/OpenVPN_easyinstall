@@ -46,12 +46,18 @@ function popup(title_content, body_content, buttons_struct=null) {
 function append_stats_to_html_obj(obj, stats) {
 	if (typeof stats === 'undefined')
 		return;
-	if (typeof stats.id !== 'undefined')
-		obj.id = stats.id;
-	if (typeof stats.classList !== 'undefined')
-		obj.classList = stats.classList;
-	if (typeof stats.innerHTML !== 'undefined')
-		obj.innerHTML = stats['innerHTML'];
+
+	Object.keys(stats).forEach((key) => {
+		if (key == 'id')
+			obj.id = stats.id;
+		else if (key == 'classList')
+			obj.classList = stats.classList;
+		else if (key == 'innerHTML')
+			obj.innerHTML = stats['innerHTML'];
+		else
+			obj.setAttribute(key, stats[key])
+	})
+
 }
 
 function create_html_obj(type, stats, parent) {
@@ -74,6 +80,21 @@ function h3(text, stats={}, parent=null) {
 	return o;
 }
 
+function isArray(obj) {
+	if(obj instanceof Object && obj instanceof Array)
+		return true;
+	return false;
+}
+
+function isDict(obj) {
+	if(obj instanceof Object) {
+		if(obj instanceof Array)
+			return false;
+		return true
+	}
+	return false;
+}
+
 function table(headers, entries, stats, parent, row_click=null, special_columns={}) {
 	let o = create_html_obj('table', stats, parent);
 
@@ -88,15 +109,50 @@ function table(headers, entries, stats, parent, row_click=null, special_columns=
 		let first_column = create_html_obj('td', {'classList' : 'column'}, row_obj);
 		first_column.innerHTML = row;
 		Object.keys(entries[row]).forEach((column) => {
+			if (column == 'options')
+				return;
+
+			let column_obj = null;
 			if (typeof special_columns[column] !== 'undefined') {
 				let special_obj = special_columns[column](row, column, entries[row][column]);
 				if(special_obj) {
-					let column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
+					column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
 					column_obj.appendChild(special_obj);
 				}
 			} else {
-				let column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
-				column_obj.innerHTML = entries[row][column];
+				if (typeof entries[row]['options'] !== 'undefined') {
+					if (typeof entries[row]['options'] === 'string') {
+						switch(entries[row]['options']) {
+							case '!filename':
+								column_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'filename'}, row_obj);
+								column_obj.value = entries[row][column];
+								break;
+							case '!number':
+								column_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'number', 'placeholder' : 'Enter a number'}, row_obj);
+								column_obj.value = entries[row][column];
+								break;
+							default:
+								console.log('Unknown table column option:', entries[row]['options'])
+								column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
+								column_obj.innerHTML = entries[row][column];
+								break;
+						}
+					} else if (isArray(entries[row]['options'])) {
+						let select = create_html_obj('select', {'classList' : 'input'}, row_obj)
+
+						entries[row]['options'].forEach((value) => {
+							let option = create_html_obj('option', {'classList' : 'option', 'value' : value, 'innerHTML' : value}, select);
+							if(entries[row][column] == value)
+								option.selected = true;
+						})
+					} else if (isDict(entries[row]['options'])) {
+						console.log('dict')
+						console.log(typeof entries[row]['options'], entries[row]['options'])
+					}
+				} else {
+					column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
+					column_obj.innerHTML = entries[row][column];
+				}
 			}
 		})
 
@@ -126,6 +182,100 @@ function slider(row, column, data) {
 	let spanswitch = create_html_obj('span', {'classList' : 'onoffswitch-switch'}, label);
 
 	return _switch
+}
+
+class show_login {
+	constructor(container) {
+		this.container = container;
+		this.container.innerHTML = '';
+
+		this.build_header();
+		this.html_obj = this.build_login();
+	}
+
+	build_header() {
+		let area = create_html_obj('div', {'classList' : 'body'}, this.container);
+	}
+
+	build_login() {
+		document.querySelector('.body').classList = 'body loginview';
+
+		// Main content:
+		let loginbox = create_html_obj('div', {'classList' : 'loginbox'}, document.querySelector('.body'));
+		let loginFields = create_html_obj('div', {'classList' : 'fields'}, loginbox);
+		let title = create_html_obj('h3', {'classList' : 'title', 'innerHTML' : 'Login'}, loginFields)
+		let username = create_html_obj('input', {'classList' : 'input'}, loginFields);
+		let password = create_html_obj('input', {'classList' : 'input'}, loginFields);
+		let loginbutton = create_html_obj('button', {'classList' : 'button'}, loginFields);
+		let footer = create_html_obj('div', {'classList' : 'footer'}, loginbox);
+		let span = create_html_obj('span', {'classList' : 'footerdescription'}, footer);
+		span.innerHTML = 'Authentication is provided by <a target="_blank" href="https://obtain.life">Obtain Life</a>.<br>Obtain Life is an open source Identity Manager.';
+
+		username.placeholder = 'username'
+		password.type = 'password';
+		password.placeholder = 'password'
+		loginbutton.innerHTML = 'Login using Obtain Life'
+		loginbutton.style.margin = '5px';
+
+		loginbutton.addEventListener('click', () => {
+			olife_socket.subscribe('auth', (data) => {
+				if(data['status'] == 'success' && typeof data['2FA'] !== 'undefined') {
+					console.log('Authentication successful, showing 2FA popup.');
+					//if(typeof data['challenge'] !== 'undefined' && typeof data['challenge_page'] !== 'undefined') {
+					//	localStorage.setItem('obtain.life.claim_challenge', data['challenge']);
+					//	window.location.href = data['challenge_page']+'?domain='+data['domain'];
+					//}
+
+					let popup_body = document.createElement('div');
+					let two_factor_code = document.createElement('input');
+					let inputs = document.createElement('div');
+					
+					inputs.classList = 'inputs';
+					popup_body.classList = 'card';
+					two_factor_code.type = 'text';
+					two_factor_code.id = 'two_factor_code';
+					two_factor_code.placeholder = 'Two factor code';
+					two_factor_code.classList = 'input';
+
+					let popup_header = document.createElement('div');
+					popup_header.classList = 'header';
+					popup_header.innerHTML = '<i>(code has been sent to your e-mail)</i>';
+
+					popup_body.appendChild(popup_header);
+					inputs.appendChild(two_factor_code);
+					popup_body.appendChild(inputs);
+
+					let obj = popup("Two factor authentication", popup_body, {
+						"OK" : function(div) {
+							let two_factor_payload = {
+								"alg": life.mode,
+								"domain": life.domain,
+								"_module": "2FA",
+								"2FA": data['2FA'],
+								"code": parseInt(two_factor_code.value)
+							};
+							life.sign(two_factor_payload, function(signature) {
+								two_factor_payload['sign'] = signature
+								olife_socket.send(two_factor_payload);
+							})
+						}
+					});
+
+					two_factor_code.focus();
+					obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
+					obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
+					console.log();
+				} else if (data['status'] == 'success' && typeof data['token'] !== 'undefined') {
+					localStorage.setItem('obtain.life.token', data['token']);
+					window.location.href = '/';
+				} 
+			})
+
+			life.login(username.value, password.value, (payload) => {
+				olife_socket.send(payload);
+			});
+		})
+	}
 }
 
 class configuration_overview {
@@ -183,7 +333,26 @@ class configuration_overview {
 
 	send_subscribes() {
 		socket.subscribe('configuration', (json_payload) => {
+			console.log('Got configs:', json_payload)
+			Object.keys(json_payload['configs']).forEach((server_name) => {
+				this.server = div({'classList' : 'server'}, this.main_area);
+				this.server_title = create_html_obj('h3', {'classList' : 'title'}, this.server);
+				this.server_title.innerHTML = server_name
 
+				let options = table(
+					['Option', 'Value'],
+					json_payload['configs'][server_name],
+					{'classList' : 'table'}, this.server, (config_option_clicked) => {
+						show_description(config_option_clicked);
+				});
+				/*
+				Object.keys(json_payload['configs'][server_name]).forEach((config_option) => {
+					let value = json_payload['configs'][server_name][config_option]['value'];
+					let options = json_payload['configs'][server_name][config_option]['options'];
+
+				})
+				*/
+			})
 		})
 	}
 
