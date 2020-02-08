@@ -1,0 +1,389 @@
+/* https://material.io/resources/color/#!/?view.left=0&view.right=0&primary.color=546e7a&secondary.color=9CCC65 */
+:root {
+	--primary: #546e7a;
+	--dark: #29434e;
+	--light: #819ca9;
+	--p_text: #FFFFFF;
+	--borders: #8899a1;
+	--background: #222d32;
+	--background-dark: #1e282c;
+	--background-darker: #1a2226;
+	--background-dark-color: #4b646f;
+	--blue: #3c8dbc;
+	--blue-dark: #367fa9;
+	--background-light: #ecf0f5;
+	--card-border: #d2d6de;
+	--card-background: #FFFFFF;
+	--white: #FFFFFF;
+	--cream: #b8c7ce;
+	--table-border: #f4f4f4;
+	--table-dark-rows: #f9f9f9;
+
+	--backdrop_dark: #E1E2E1;
+	--backdrop_light: #F5F5F6;
+
+	--o_primary: #ff7043;
+	--o_light: #ffa270;
+	--o_dark: #c63f17;
+	--o_text: #000000;
+
+	--g_primary: #9ccc65;
+	--g_light: #cfff95;
+	--g_dark: #6b9b37;
+	--g_text: #000000;
+}
+
+body, html {
+	font-family: 'Source Sans Pro', sans-serif;
+	background-color: var(--backdrop_light);
+
+	margin: 0px;
+	padding: 0px;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+
+	width: 100%;
+	height: 100%;
+
+	-ms-text-size-adjust: 100%;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+
+	color: var(--white);
+	display: flex;
+    flex-direction: column;
+}
+
+h3, table, tr, td {
+	margin: 0px;
+	padding: 0px;
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+h3 {
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.container {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-content: flex-start;
+	height: 100%;
+}
+
+.leftSide {
+	flex-grow: 0;
+	background-color: var(--background);
+}
+
+.rightSide {
+	flex-grow: 1;
+}
+
+.header {}
+.header.dark {
+	background-color: var(--blue-dark);
+}
+
+.profileBox {
+	display: flex;
+	flex-direction: row;
+}
+
+	.profilePhoto {
+		background-image: url('https://avatars1.githubusercontent.com/u/861439?s=460&v=4');
+		background-size: cover;
+		min-width: 64px;
+		min-height: 64px;
+		margin: 10px;
+		border-radius: 32px;
+		border: 1px solid var(--g_primary);
+	}
+
+	.profileInfo {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		flex-grow: 1;
+	}
+
+		.profilerole {
+			color: var(--background-dark-color);
+		}
+
+.subheader {
+	background-color: var(--background-darker);
+	color: var(--background-dark-color);
+	padding: 10px;
+}
+
+.subheader.active {
+	color: var(--white);
+}
+
+.logoholder {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding-left: 20px;
+	padding-right: 20px;
+	min-width: 200px;
+}
+
+.logo {
+	background-image: url('/resources/images/logo.png');
+	background-size: cover;
+	min-width: 50px;
+	min-height: 50px;
+	max-width: 64px;
+	max-height: 64px;
+
+	margin-right: 5px;
+	margin-left: 5px;
+}
+
+.menu {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex-grow: 1;
+	overflow: hidden;
+}
+
+.header {
+	background-color: var(--blue);
+	min-height: 50px;
+
+	display: flex;
+	flex-direction: row;
+
+	padding-right: 5px;
+
+	color: var(--white);
+}
+
+.button {
+	cursor: pointer;
+	height: 100%;
+	justify-content: center;
+	align-items: center;
+	display: flex;
+	padding-left: 10px;
+	padding-right: 10px;
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+	margin-top: 15px;
+	background-color: var(--blue-dark);
+    margin-right: 3px;
+}
+
+.button.shadow {
+	box-shadow: 7px 2px 9px 5px rgba(0, 0, 0, 0.3);
+}
+
+.button.shadowEnd {
+	box-shadow: 5px 0px 13px 0px rgba(0, 0, 0, 0.62);
+}
+
+.button:hover {
+	color: var(--cream);
+}
+
+.button.active {
+	background-color: var(--backdrop_light);
+	color: #000000;
+}
+
+.loginbox {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--g_primary);
+	border-radius: 3px;
+	background-color: var(--light);
+}
+
+	.input {
+		margin: 5px;
+		border-radius: 3px;
+		border: 1px solid var(--borders);
+		padding: 3px;
+	}
+
+.body {
+	color: rgb(51, 51, 51);
+}
+
+.container > .body.loginview {
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	align-content: center;
+	align-items: center;
+}
+
+.footer {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	margin-top: auto;
+	background-color: var(--backdrop_dark);
+	padding: 2.5px;
+}
+
+.footerdescription {
+	font-size: 9px;
+}
+
+.footer > a {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+
+.footer > a > * {
+	margin-left: 2.5px;
+	margin-right: 2.5px;
+	text-decoration: none;
+}
+
+.right {
+	margin-left: auto !important;
+}
+
+.machines {
+	padding: 30px;
+}
+
+tr {
+	margin: 0px;
+}
+td.tableheader {
+	margin: 0px;
+	padding: 5px;
+	background-color: var(--cream) !important;
+	color: var(--p_text);
+}
+td.column {
+	margin: 0px;
+	padding: 5px;
+}
+.row {
+	cursor: pointer;
+}
+
+tr:nth-child(even) {background: var(--table-dark-rows)}
+
+option.bold {
+	font-weight: bold;
+	color: var(--o_primary);
+}
+
+.popup {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	background-color: #272822;
+	border: 1px solid #49483E;
+	display: flex;
+	min-height: 0;
+	flex-direction: column;
+	flex-grow: 1;
+	flex-shrink: 0;
+	flex-basis: 100%;
+}
+	.popup > .title {
+		font-weight: bold;
+		font-size: 14px;
+		padding: 5px;
+		color: var(--p_text);
+		flex: 1;
+		background-color: var(--primary);
+	}
+
+	.popup > .body {
+		padding: 5px;
+		margin: 5px;
+		color: #F8F8F2;
+		flex: 1;
+
+		display: flex;
+		flex-direction: column;
+	}
+
+		.popup > .body > * {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+		}
+
+	.popup > .buttons {
+		display: flex;
+		flex-direction: row;
+		border-top: 1px solid var(--light);
+		padding: 4px;
+	}
+		.popup > .buttons > .Save {
+			flex: 1;
+			color: var(--power-on);
+			border-right: 1px solid var(--light);
+		}
+			.popup > .buttons > .Save:hover {
+				font-weight: bold;
+			}
+
+		.popup > .buttons > .OK {
+			flex: 1;
+			color: var(--g_primary);
+			border-right: 1px solid var(--light);
+		}
+			.popup > .buttons > .OK:hover {
+				font-weight: bold;
+			}
+
+		.popup > .buttons > .Discard {
+			flex: 1;
+			color: var(--o_primary);
+		}
+			.popup > .buttons > .Discard:hover {
+				font-weight: bold;
+			}
+		.popup > .buttons > .Cancel {
+			flex: 1;
+			color: var(--o_primary);
+		}
+			.popup > .buttons > .Cancel:hover {
+				font-weight: bold;
+			}
+
+.popup_header {
+	background-color: var(--light-blue);
+	color: #FFFFFF;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	border-bottom: 1px solid var(--light-blue-border);
+	padding: 4px;
+	font-weight: bold;
+}
+
+.machine_stopped {
+	color: var(--o_dark);
+}
+
+.machine_started {
+	color: var(--g_primary);
+}
+
+.powerOn {
+	color: var(--g_primary);
+}
+
+.powerOff{
+	color: var(--o_dark);
+}

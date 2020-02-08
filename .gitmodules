@@ -10,3 +10,7 @@
 	path = web_root/slimWebSocket
 	url = https://github.com/Torxed/slimWebSocket.git
 	branch = master
+[submodule "dependencies/python-olife"]
+	path = dependencies/olife
+	url = https://github.com/Torxed/python-olife.git
+	branch = master
