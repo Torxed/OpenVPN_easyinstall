@@ -96,7 +96,7 @@
 		function clear_base() {
 			let leftSide = document.querySelector('.leftSide');
 			let rightSide = document.querySelector('.rightSide');
-			leftSide.innerHTML = '';
+			//leftSide.innerHTML = '';
 			rightSide.innerHTML = '';
 
 			return rightSide;
@@ -115,23 +115,34 @@
 
 			socket.subscribe('certificates', (json) => {
 				clear_base();
-				build_sidemenu(document.querySelector('.leftSide'))
+				//build_sidemenu(document.querySelector('.leftSide'))
 				let view = new certificate_overview(document.querySelector('.rightSide'), false);
+				view.parse_payload(json);
+			})
+			socket.subscribe('users', (json) => {
+				clear_base();
+				
+				let view = null;
+				if (typeof json['users'] !== 'undefined')
+					view = new users_overview(document.querySelector('.rightSide'), false);
+				else
+					view = new user_config(document.querySelector('.rightSide'), false);
 				view.parse_payload(json);
 			})
 
 			let categories = ['Configuration <i>(server)</i>', 'Certificates', 'Users & Clients'];
 			categories.forEach((category) => {
-				let categoryObj = create_html_obj('div', {'classList' : 'category'}, container);
-				categoryObj.id = category.split(' ')[0];
+				let categoryObj = create_html_obj('div', {'classList' : 'category', 'id' : category.split(' ')[0]}, container);
+				let categoryHeader = create_html_obj('div', {'classList' : 'subheader', 'innerHTML' : category}, categoryObj);
 				categoryObj.addEventListener('click', () => {
 					socket.send({
 						'_module' : categoryObj.id.toLowerCase()
 					})
-				})
-				let categoryHeader = create_html_obj('div', {'classList' : 'subheader', 'innerHTML' : category}, categoryObj);
-				if(category == 'Configuration <i>(server)</i>')
+					container.querySelectorAll('.subheader').forEach((obj) => {
+						obj.classList = 'subheader';
+					})
 					categoryHeader.classList.toggle('active');
+				})
 			})
 		}
 	</script>

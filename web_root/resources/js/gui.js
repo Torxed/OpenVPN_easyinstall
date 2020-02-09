@@ -336,6 +336,175 @@ class show_login {
 	}
 }
 
+class users_overview {
+	constructor(container, probe=false) {
+		this.container = container;
+		this.container.innerHTML = '';
+
+		this.build_header();
+		this.html_obj = this.build_overview();
+
+		if(probe)
+			this.send_init_command();
+	}
+
+	build_header() {
+		let contentHeader = create_html_obj('div', {'classList' : 'logoheader'}, this.container);
+
+		let menu = create_html_obj('div', {'classList' : 'menu'}, contentHeader);
+		let area = create_html_obj('div', {'classList' : 'body'}, this.container);
+
+		// Buttons:
+		let tmp = null;
+		let btn_overview = create_html_obj('div', {'classList' : 'button active shadow', 'id' : 'btn_overview', 'innerHTML' : 'Overview'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_ca', 'innerHTML' : 'User config'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button right', 'id' : 'btn_logout', 'innerHTML' : 'Logout'}, menu);
+		tmp.addEventListener('click', () => {
+			localStorage.removeItem('obtain.life.token');
+			window.location.href = '/';
+		})
+
+		btn_overview.addEventListener('click', function(event) {
+			
+		})
+
+	}
+
+	build_overview() {
+		this.main_area = create_html_obj('div', {'classList' : 'overview'}, this.container);
+
+		/*
+			To be honest, create a machine-area in this.main_area
+			and use the machines() class to render the machines.
+			No point in duplicating code.. but works for now since
+			there's more issues to tackle before this is useable.
+		*/
+		return this.main_area.innerHTML;
+	}
+
+	parse_payload(json) {
+		Object.keys(json['users']).forEach((user) => {
+			let server = div({'classList' : 'server'}, this.main_area);
+
+			let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
+			let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
+			server_title.innerHTML = user
+			let view_conf = create_html_obj('i', {'classList' : 'fas fa-person-booth right blue cursor'}, server_header)
+
+			let rows = {};
+			rows['proto'] = json['users'][user]['proto'];
+			rows['remote'] = json['users'][user]['remote'];
+			rows['ca'] = json['users'][user]['ca'];
+			rows['cert'] = json['users'][user]['cert'];
+
+			let table_obj = table(
+				['Option', 'Value'],
+				rows,
+				{'classList' : 'table'}, server, (config_option_clicked) => {
+					show_description(config_option_clicked);
+			});
+			
+			view_conf.addEventListener('click', () => {
+				socket.send({
+					'_module' : 'users',
+					'get' : user
+				})
+			})
+			/*
+			Object.keys(json_payload['configs'][server_name]).forEach((config_option) => {
+				let value = json_payload['configs'][server_name][config_option]['value'];
+				let options = json_payload['configs'][server_name][config_option]['options'];
+
+			})
+			*/
+		})
+	}
+
+	send_init_command() {
+		socket.send({
+			'_module' : 'configuration',
+			'get' : 'overview'
+		})
+	}
+}
+
+class user_config {
+	constructor(container, probe=false) {
+		this.container = container;
+		this.container.innerHTML = '';
+
+		this.build_header();
+		this.html_obj = this.build_overview();
+
+		if(probe)
+			this.send_init_command();
+	}
+
+	build_header() {
+		let contentHeader = create_html_obj('div', {'classList' : 'logoheader'}, this.container);
+
+		let menu = create_html_obj('div', {'classList' : 'menu'}, contentHeader);
+		let area = create_html_obj('div', {'classList' : 'body'}, this.container);
+
+		// Buttons:
+		let tmp = null;
+		let btn_overview = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_overview', 'innerHTML' : 'Overview'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button active shadow', 'id' : 'btn_user', 'innerHTML' : 'User config'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button right', 'id' : 'btn_logout', 'innerHTML' : 'Logout'}, menu);
+		tmp.addEventListener('click', () => {
+			localStorage.removeItem('obtain.life.token');
+			window.location.href = '/';
+		})
+
+		btn_overview.addEventListener('click', function(event) {
+			
+		})
+
+	}
+
+	build_overview() {
+		this.main_area = create_html_obj('div', {'classList' : 'overview'}, this.container);
+
+		/*
+			To be honest, create a machine-area in this.main_area
+			and use the machines() class to render the machines.
+			No point in duplicating code.. but works for now since
+			there's more issues to tackle before this is useable.
+		*/
+		return this.main_area.innerHTML;
+	}
+
+	parse_payload(json) {
+		let server = div({'classList' : 'server'}, this.main_area);
+
+		let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
+		let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
+		server_title.innerHTML = json['userid'];
+		let view_conf = create_html_obj('i', {'classList' : 'fas fa-person-booth right blue cursor'}, server_header)
+
+		let table_obj = table(
+			['Option', 'Value'],
+			json['user'],
+			{'classList' : 'table'}, server, (config_option_clicked) => {
+				show_description(config_option_clicked);
+		});
+		
+		view_conf.addEventListener('click', () => {
+			socket.send({
+				'_module' : 'users',
+				'get' : user
+			})
+		})
+	}
+
+	send_init_command() {
+		socket.send({
+			'_module' : 'configuration',
+			'get' : 'overview'
+		})
+	}
+}
+
 class certificate_overview {
 	constructor(container, probe=false) {
 		this.container = container;

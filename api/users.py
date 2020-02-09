@@ -2,33 +2,6 @@ from pathlib import Path
 
 configs = {}
 
-def get_ovpn_options(key):
-	options = {
-		'ca' : '!filename',
-		'cert' : '!filename',
-		'key' : '!filename',
-		'cipher' : ['AES-256-GCM', 'AES-256-CBC'],
-		'dev' : ['tun', 'tap'],
-		'dh' : '!filename',
-		'ecdh-curve' : ['secp521r1'],
-		'explicit-exit-notify' : [0, 1],
-		'ifconfig-pool-persist' : '!filename',
-		'keepalive' : {'interval' : 10, 'timeout' : 120},
-		'persist-key' : [True, False],
-		'persist-tun' : [True, False],
-		'port' : '!number',
-		'proto' : ['udp', 'tcp'],
-		'server' : {'network' : '!ip', 'netmask' : '!netmask'},
-		'tls-auth' : {'file' : '!filename', 'direction' : [0, 1]},
-		'status' : '!filename',
-		'verb' : '!number'
-	}
-
-	if key in options:
-		return options[key]
-	else:
-		return None
-
 def expand_helper_directives(general_conf):
 	expanded_config = {**general_conf}
 	for key, val in list(general_conf.items()):
@@ -100,17 +73,15 @@ def read_ovpn_conf(filename):
 	return expand_helper_directives(conf)
 
 def reload_config_cache():
-	for filename in Path('./instances/').rglob('*.conf'):
+	for filename in Path('./secrets/configs').rglob('*.conf'):
 		configs[filename.name[:-5]] = read_ovpn_conf(filename)
 
 class parser():
 	def process(self, path, client, data, headers, fileno, addr, *args, **kwargs):
-		print('### Configuration ###\n', data, client)
-		if 'get' in data:
-			if data['get'] == 'overview':
-				reload_config_cache()
-
-				return {'configs' : configs}
-
+		print('### Users ###\n', data, client)
 		reload_config_cache()
-		return {'configs' : configs}
+
+		if 'get' in data:
+			return {'userid' : data['get'], 'user' : configs[data['get']]}
+
+		return {'users' : configs}
