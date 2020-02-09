@@ -1,14 +1,22 @@
-import random
+import random, os
 from OpenSSL.crypto import load_certificate, load_privatekey, PKey, FILETYPE_PEM, TYPE_RSA, X509, X509Req, dump_certificate, dump_privatekey
 from pathlib import Path
 class CA():
 	def __init__(self, key, cert):
-		with open(key, 'rb') as fh:
-			self.key = load_privatekey(FILETYPE_PEM, fh.read())
-			self.key_path = key
-		with open(cert, 'rb') as fh:
-			self.cert = load_certificate(FILETYPE_PEM, fh.read())
-			self.cert_path = cert
+		if type(key) == str:
+			with open(key, 'rb') as fh:
+				self.key = load_privatekey(FILETYPE_PEM, fh.read())
+				self.key_path = key
+		else:
+			self.key = key
+			self.key_path = 'Unknown'
+		if type(cert) == str:
+			with open(cert, 'rb') as fh:
+				self.cert = load_certificate(FILETYPE_PEM, fh.read())
+				self.cert_path = cert
+		else:
+			self.cert = cert
+			self.cert_path = 'Unknown'
 		
 		self.issued_certificats = {}
 
@@ -43,14 +51,13 @@ def generate_certificate(key, cert=None, **kwargs):
 	if not 'expires' in kwargs: kwargs['expires'] = a_day*365
 	if not 'key_size' in kwargs: kwargs['key_size'] = 4096
 	if not 'join' in kwargs: kwargs['join'] = True
-	if not 'ca_cert' in kwargs: kwargs['ca_cert'] = None
-	if not 'ca_key' in kwargs: kwargs['ca_key'] = None
+	if not 'ca' in kwargs: kwargs['ca'] = None
 
 	priv_key = PKey()
 	priv_key.generate_key(TYPE_RSA, kwargs['key_size'])
 	serialnumber=random.getrandbits(64)
 
-	if not kwargs['ca_cert']:
+	if not kwargs['ca']:
 		# If no ca cert/key was given, assume that we're trying
 		# to set up a CA cert and key pair.
 		certificate = X509()
@@ -84,10 +91,10 @@ def generate_certificate(key, cert=None, **kwargs):
 		certificate.set_serial_number(serialnumber)
 		certificate.gmtime_adj_notBefore(0)
 		certificate.gmtime_adj_notAfter(kwargs['expires'])
-		certificate.set_issuer(kwargs['ca_cert'].get_subject())
+		certificate.set_issuer(kwargs['ca'].cert.get_subject())
 		certificate.set_subject(req.get_subject())
 		certificate.set_pubkey(req.get_pubkey())
-		certificate.sign(kwargs['ca_key'], 'md5')
+		certificate.sign(kwargs['ca'].key, 'md5')
 
 	cert_dump = dump_certificate(FILETYPE_PEM, certificate)
 	key_dump = dump_privatekey(FILETYPE_PEM, priv_key)
@@ -108,14 +115,18 @@ def load_CAs(root='./secrets/pki/ca'):
 	ca_store = {}
 	for key in Path('./secrets/pki/ca').rglob('*.key'):
 		key_full_path = str(key.resolve().absolute())
-		ca_store[key.name] = CA(key_full_path, f'{key_full_path[:-4]}.crt')
+		relative_path = key_full_path.replace(os.getcwd(), '.')
+
+		ca_store[key.name] = CA(relative_path, f'{relative_path[:-4]}.crt')
 	return ca_store
 
 def load_keys(ca_store):
 	key_store = {}
 	for key_file in Path('./secrets/pki/issued').rglob('*.key'):
 		key_full_path = str(key_file.resolve().absolute())
-		key_obj = key(key_full_path, f'{key_full_path[:-4]}.crt')
+		relative_path = key_full_path.replace(os.getcwd(), '.')
+
+		key_obj = key(relative_path, f'{relative_path[:-4]}.crt')
 		for ca in ca_store:
 			if ca_store[ca].verify(key_obj):
 				key_store[key_file.name] = key_obj
@@ -136,16 +147,23 @@ class parser():
 		}
 
 		for ca in ca_store:
-			store['ca'][ca] = {'key' : ca_store[ca].key_path, 'cert' : ca_store[ca].cert_path}
+			store['ca'][ca_store[ca].cert.get_subject().CN] = {'key' : ca_store[ca].key_path, 'cert' : ca_store[ca].cert_path}
 
 		for key in key_store:
-			store['clients'][key] = {'key' : key_store[key].key_path, 'cert' : key_store[key].cert_path}
+			store['clients'][key_store[key].cert.get_subject().CN] = {'key' : key_store[key].key_path, 'cert' : key_store[key].cert_path}
+
+		if 'action' in data and data['action'] == 'generate':
+			if 'ca' in data:
+				## Generate a client certificate and sign it.
+				key, cert = generate_certificate(f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt', join=False, ca=ca_store[data["ca"]], **data["cert_data"])
+				store['clients'][cert.get_subject().CN] = {'key' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', 'cert' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt'}
 
 		if not 'get' in data:
 			return {'stores' : store}
 
 if __name__ == '__main__':
 	ca_key, ca_cert = generate_certificate('../secrets/pki/ca/ca.key', '../secrets/pki/ca/ca.crt', join=False)
+	ca = CA(ca_key, ca_cert)
 
-	key, cert = generate_certificate('../secrets/pki/issued/user.key', '../secrets/pki/issued/user.crt', join=False, ca_cert=ca_cert, ca_key=ca_key)
+	key, cert = generate_certificate('../secrets/pki/issued/user.key', '../secrets/pki/issued/user.crt', join=False, ca=ca, cn='testcert')
 	# openssl verify -CAfile ca.crt user.crt

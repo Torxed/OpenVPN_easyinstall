@@ -7,6 +7,7 @@
 	<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="/resources/css/slider.css">
 	<link rel="stylesheet" type="text/css" href="/resources/css/gui.css">
+	<link rel="stylesheet" type="text/css" href="/resources/css/popup.css">
 	<link rel="icon" type="image/png" href="/resources/images/logo.png" />
 	<script type="text/javascript">
 		let socket = null;
@@ -102,7 +103,7 @@
 		}
 
 		function build_sidemenu(container) {
-			let categoriesHeader = create_html_obj('div', {'classList' : 'header dark'}, container);
+			let categoriesHeader = create_html_obj('div', {'classList' : 'logoheader dark'}, container);
 			let logoname_holder = create_html_obj('div', {'classList' : 'logoholder'}, categoriesHeader)
 			let logoname = create_html_obj('h3', {'classList' : 'logname', 'innerHTML' : 'OpenVPN Admin'}, logoname_holder)
 

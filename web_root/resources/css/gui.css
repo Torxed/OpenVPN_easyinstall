@@ -89,8 +89,8 @@ h3 {
 	text-align: center;
 }
 
-.header {}
-.header.dark {
+.logoheader {}
+.logoheader.dark {
 	background-color: var(--blue-dark);
 }
 
@@ -163,7 +163,7 @@ h3 {
 	overflow: hidden;
 }
 
-.header {
+.logoheader {
 	background-color: var(--blue);
 	min-height: 50px;
 
@@ -275,6 +275,8 @@ h3 {
 	margin-top: 5px;
 }
 
+
+
 .footer {
 	display: flex;
 	flex-direction: row;
@@ -330,6 +332,10 @@ h3 {
 	color: var(--cream);
 }
 
+table {
+	flex-grow: 1;
+	width: 100%;
+}
 tr {
 	margin: 0px;
 }

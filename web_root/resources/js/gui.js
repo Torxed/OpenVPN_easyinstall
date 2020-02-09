@@ -3,8 +3,6 @@ interfaces = {}
 let elements = {}; // Used for popups
 function popup(title_content, body_content, buttons_struct=null) {
 	let div = document.createElement('div');
-	let stylebar = document.createElement('div');
-	stylebar.classList = 'stylebar';
 	div.id = 'popup_'+(Math.random() * 1001);
 	div.classList = 'popup';
 	let title = document.createElement('div');
@@ -20,7 +18,6 @@ function popup(title_content, body_content, buttons_struct=null) {
 	else
 		body.appendChild(body_content);
 	
-	div.appendChild(stylebar);
 	div.appendChild(title);
 	div.appendChild(body);
 	
@@ -299,11 +296,9 @@ class show_login {
 					two_factor_code.placeholder = 'Two factor code';
 					two_factor_code.classList = 'input';
 
-					let popup_header = document.createElement('div');
-					popup_header.classList = 'header';
+					let popup_header = create_html_obj('div', {'classList' : 'header'}, popup_body);
 					popup_header.innerHTML = '<i>(code has been sent to your e-mail)</i>';
 
-					popup_body.appendChild(popup_header);
 					inputs.appendChild(two_factor_code);
 					popup_body.appendChild(inputs);
 
@@ -353,7 +348,7 @@ class certificate_overview {
 	}
 
 	build_header() {
-		let contentHeader = create_html_obj('div', {'classList' : 'header'}, this.container);
+		let contentHeader = create_html_obj('div', {'classList' : 'logoheader'}, this.container);
 
 		let menu = create_html_obj('div', {'classList' : 'menu'}, contentHeader);
 		let area = create_html_obj('div', {'classList' : 'body'}, this.container);
@@ -409,26 +404,34 @@ class certificate_overview {
 			
 			cert_add.addEventListener('click', () => {
 				if(store=='clients') {
-					let popup_body = document.createElement('div');
-					let inputs = document.createElement('div');
+					let popup_body = create_html_obj('div', {'classList' : 'card'});
 					
-					inputs.classList = 'inputs';
-					popup_body.classList = 'card';
-					
+					let popup_header = create_html_obj('div', {'classList' : 'header'}, popup_body);
+					popup_header.innerHTML = 'Select a CA';
+
+					let inputs = create_html_obj('div', {'classList' : 'inputs'}, popup_body);
 					let select_ca = create_html_obj('select', {'classList' : 'input'}, inputs)
 					create_html_obj('option', {'value' : 'ca.key', 'innerHTML' : 'ca.key'}, select_ca);
+
+					inputs = create_html_obj('div', {'classList' : 'inputs'}, popup_body);
+					popup_header = create_html_obj('div', {'classList' : 'header'}, popup_body);
+					popup_header.innerHTML = 'Custom certificate options';
 					let email = create_html_obj('input', {'classList' : 'input', 'placeholder' : 'email'}, inputs)
 
-					let popup_header = document.createElement('div');
-					popup_header.classList = 'header';
-					popup_header.innerHTML = '<i>Select a CA</i>';
-
-					popup_body.appendChild(popup_header);
 					popup_body.appendChild(inputs);
 
 					let obj = popup("Generate new Client Certificate", popup_body, {
 						"OK" : function(div) {
-							console.log('Generating certificate')
+							socket.send({
+								'_module' : 'certificates',
+								'action' : 'generate',
+								'ca' : select_ca.options[select_ca.selectedIndex].value,
+								'cert_data' : {
+									'emailAddress' : email.value,
+									'cn' : email.value
+								}
+							})
+							div.remove();
 						}
 					});
 
@@ -461,7 +464,7 @@ class configuration_overview {
 	}
 
 	build_header() {
-		let contentHeader = create_html_obj('div', {'classList' : 'header'}, this.container);
+		let contentHeader = create_html_obj('div', {'classList' : 'logoheader'}, this.container);
 
 		let menu = create_html_obj('div', {'classList' : 'menu'}, contentHeader);
 		let area = create_html_obj('div', {'classList' : 'body'}, this.container);
