@@ -95,7 +95,7 @@ function isDict(obj) {
 	return false;
 }
 
-function table(headers, entries, stats, parent, row_click=null, special_columns={}) {
+function inline_table(headers, entries, stats, parent) {
 	let o = create_html_obj('table', stats, parent);
 
 	let header = create_html_obj('tr', {'classList' : 'tableheader'}, o);
@@ -104,62 +104,124 @@ function table(headers, entries, stats, parent, row_click=null, special_columns=
 		h.innerHTML = title;
 	})
 
-	Object.keys(entries).forEach((row) => {
-		let row_obj = create_html_obj('tr', {'classList' : 'row'}, o);
-		let first_column = create_html_obj('td', {'classList' : 'column'}, row_obj);
-		first_column.innerHTML = row;
-		Object.keys(entries[row]).forEach((column) => {
-			if (column == 'options')
-				return;
+	let row_obj = create_html_obj('tr', {'classList' : 'tableheader'}, o);
+	Object.keys(entries).forEach((column_name) => {
+		column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
+		switch(entries[column_name]) {
+			case '!filename':
+				input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'filename'}, column_obj);
+				input_obj.value = entries[column_name];
+				break;
+			case '!number':
+				input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'number', 'placeholder' : 'Enter a number'}, column_obj);
+				input_obj.value = entries[column_name];
+				break;
+			case '!ip':
+				input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'Enter a ip number'}, column_obj);
+				input_obj.value = ''; //entries[column_name];
+				break;
+			case '!netmask':
+				input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'Enter a netmask'}, column_obj);
+				input_obj.value = ''; //entries[column_name];
+				break;
+			default:
+				console.log('Unknown table column option:', entries[column_name])
+				input_obj = create_html_obj('div', {'classList' : 'column'}, column_obj);
+				input_obj.innerHTML = entries[column_name];
+				break;
+		}
+	})
+}
 
-			let column_obj = null;
-			if (typeof special_columns[column] !== 'undefined') {
-				let special_obj = special_columns[column](row, column, entries[row][column]);
-				if(special_obj) {
-					column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
-					column_obj.appendChild(special_obj);
+function cert_table(headers, entries, stats, parent, row_click=null, special_columns={}) {
+	let o = create_html_obj('table', stats, parent);
+
+	let header = create_html_obj('tr', {'classList' : 'tableheader'}, o);
+	headers.forEach((title) => {
+		let h = create_html_obj('td', {'classList' : 'tableheader'}, header);
+		h.innerHTML = title;
+	})
+
+	Object.keys(entries).forEach((id) => {
+		let row = create_html_obj('tr', {'classList' : 'row'}, o);
+		let id_column = create_html_obj('td', {'classList' : 'column'}, row);
+		let cert_column = create_html_obj('td', {'classList' : 'column'}, row);
+		let key_column = create_html_obj('td', {'classList' : 'column'}, row);
+		id_column.innerHTML = id;
+		cert_column.innerHTML = entries[id]['cert'];
+		key_column.innerHTML = entries[id]['key'];
+	})
+
+	return o;
+}
+
+function table(headers, entries, stats, parent, row_click=null, special_columns={}) {
+	let o = create_html_obj('table', stats, parent);
+
+	let header = create_html_obj('tr', {'classList' : 'tableheader'}, o);
+	headers.forEach((title) => {
+		let h = create_html_obj('td', {'classList' : 'tableheader'}, header);
+		h.innerHTML = title;
+	})
+	let h = create_html_obj('td', {'classList' : 'tableheader'}, header);
+	h.innerHTML = 'Description';
+
+	Object.keys(entries).forEach((row) => {
+		if(isArray(entries[row])) {
+			entries[row].forEach((subrow) => {
+				let row_obj = create_html_obj('tr', {'classList' : 'row'}, o);
+				let first_column = create_html_obj('td', {'classList' : 'column'}, row_obj);
+				first_column.innerHTML = row;
+				
+				column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
+				let input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'filename'}, column_obj);
+				input_obj.value = subrow;
+
+				if (row_click) {
+					let descr = create_html_obj('td', {'classList' : 'column centered'}, row_obj);
+					descr.innerHTML = '<i class="far fa-question-circle"></i>';
+					descr.addEventListener('click', () => {
+						row_click(subrow);
+					});
+				} else {
+					let descr = create_html_obj('td', {'classList' : 'column'}, row_obj);
+					descr.innerHTML = '';
+				}
+			})
+		} else {
+			let row_obj = create_html_obj('tr', {'classList' : 'row'}, o);
+			let first_column = create_html_obj('td', {'classList' : 'column'}, row_obj);
+			first_column.innerHTML = row;
+			
+			column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
+			if (typeof openvpn_options[row] !== 'undefined') {
+				if (isArray(openvpn_options[row])) {
+					let select = create_html_obj('select', {'classList' : 'input'}, column_obj);
+					openvpn_options[row].forEach((option_text) => {
+						let option = create_html_obj('option', {'value' : option_text, 'innerHTML' : option_text}, select)
+						if(option_text == entries[row])
+							option.selected = true;
+					})
+				} else {
+					let input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'filename'}, column_obj);
+					input_obj.value = entries[row];
 				}
 			} else {
-				if (typeof entries[row]['options'] !== 'undefined') {
-					if (typeof entries[row]['options'] === 'string') {
-						switch(entries[row]['options']) {
-							case '!filename':
-								column_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'filename'}, row_obj);
-								column_obj.value = entries[row][column];
-								break;
-							case '!number':
-								column_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'number', 'placeholder' : 'Enter a number'}, row_obj);
-								column_obj.value = entries[row][column];
-								break;
-							default:
-								console.log('Unknown table column option:', entries[row]['options'])
-								column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
-								column_obj.innerHTML = entries[row][column];
-								break;
-						}
-					} else if (isArray(entries[row]['options'])) {
-						let select = create_html_obj('select', {'classList' : 'input'}, row_obj)
-
-						entries[row]['options'].forEach((value) => {
-							let option = create_html_obj('option', {'classList' : 'option', 'value' : value, 'innerHTML' : value}, select);
-							if(entries[row][column] == value)
-								option.selected = true;
-						})
-					} else if (isDict(entries[row]['options'])) {
-						console.log('dict')
-						console.log(typeof entries[row]['options'], entries[row]['options'])
-					}
-				} else {
-					column_obj = create_html_obj('td', {'classList' : 'column'}, row_obj);
-					column_obj.innerHTML = entries[row][column];
-				}
+				let input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'filename'}, column_obj);
+				input_obj.value = entries[row];
 			}
-		})
 
-		if (row_click)
-			row_obj.addEventListener('click', () => {
-				row_click(row);
-			});
+			if (row_click) {
+				let descr = create_html_obj('td', {'classList' : 'column centered'}, row_obj);
+				descr.innerHTML = '<i class="far fa-question-circle"></i>';
+				descr.addEventListener('click', () => {
+					row_click(row);
+				});
+			} else {
+				let descr = create_html_obj('td', {'classList' : 'column'}, row_obj);
+				descr.innerHTML = '';
+			}
+		}
 	})
 
 	return o;
@@ -278,6 +340,114 @@ class show_login {
 	}
 }
 
+class certificate_overview {
+	constructor(container, probe=false) {
+		this.container = container;
+		this.container.innerHTML = '';
+
+		this.build_header();
+		this.html_obj = this.build_overview();
+
+		if(probe)
+			this.send_init_command();
+	}
+
+	build_header() {
+		let contentHeader = create_html_obj('div', {'classList' : 'header'}, this.container);
+
+		let menu = create_html_obj('div', {'classList' : 'menu'}, contentHeader);
+		let area = create_html_obj('div', {'classList' : 'body'}, this.container);
+
+		// Buttons:
+		let tmp = null;
+		let btn_overview = create_html_obj('div', {'classList' : 'button active shadow', 'id' : 'btn_overview', 'innerHTML' : 'Overview'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_ca', 'innerHTML' : 'Certificate Authority'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_clients', 'innerHTML' : 'Issued Certificate'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button right', 'id' : 'btn_logout', 'innerHTML' : 'Logout'}, menu);
+		tmp.addEventListener('click', () => {
+			localStorage.removeItem('obtain.life.token');
+			window.location.href = '/';
+		})
+
+		btn_overview.addEventListener('click', function(event) {
+			resource_handlers = {};
+			clear_base();
+			build_sidemenu(document.querySelector('.leftSide'))
+			let view = new configuration_overview(document.querySelector('.rightSide'));
+		})
+	}
+
+	build_overview() {
+		this.main_area = create_html_obj('div', {'classList' : 'overview'}, this.container);
+
+		/*
+			To be honest, create a machine-area in this.main_area
+			and use the machines() class to render the machines.
+			No point in duplicating code.. but works for now since
+			there's more issues to tackle before this is useable.
+		*/
+		return this.main_area.innerHTML;
+	}
+
+	parse_payload(json) {
+		console.log(json);
+		let certificates = create_html_obj('div', {'classList' : 'certificates'}, this.main_area)
+		Object.keys(json['stores']).forEach((store) => {
+			let certificate = div({'classList' : 'certificate'}, certificates);
+
+			let ca_header = create_html_obj('div', {'classList' : 'serverHeader'}, certificate);
+			let ca_title = create_html_obj('h3', {'classList' : 'title'}, ca_header);
+			ca_title.innerHTML = store + ' store';
+			let cert_add = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor'}, ca_header)
+
+			let table_obj = cert_table(
+				['ID', 'Cert', 'Key'],
+				json['stores'][store],
+				{'classList' : 'table'}, certificate, (config_option_clicked) => {
+					open_certificate(config_option_clicked);
+			});
+			
+			cert_add.addEventListener('click', () => {
+				if(store=='clients') {
+					let popup_body = document.createElement('div');
+					let inputs = document.createElement('div');
+					
+					inputs.classList = 'inputs';
+					popup_body.classList = 'card';
+					
+					let select_ca = create_html_obj('select', {'classList' : 'input'}, inputs)
+					create_html_obj('option', {'value' : 'ca.key', 'innerHTML' : 'ca.key'}, select_ca);
+					let email = create_html_obj('input', {'classList' : 'input', 'placeholder' : 'email'}, inputs)
+
+					let popup_header = document.createElement('div');
+					popup_header.classList = 'header';
+					popup_header.innerHTML = '<i>Select a CA</i>';
+
+					popup_body.appendChild(popup_header);
+					popup_body.appendChild(inputs);
+
+					let obj = popup("Generate new Client Certificate", popup_body, {
+						"OK" : function(div) {
+							console.log('Generating certificate')
+						}
+					});
+
+					email.focus();
+					obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
+					obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
+				}
+			})
+		})
+	}
+
+	send_init_command() {
+		socket.send({
+			'_module' : 'configuration',
+			'get' : 'overview'
+		})
+	}
+}
+
 class configuration_overview {
 	constructor(container) {
 		this.container = container;
@@ -307,7 +477,7 @@ class configuration_overview {
 		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_osoptions', 'innerHTML' : 'OS Options'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_variables', 'innerHTML' : 'Variables'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button shadowEnd', 'id' : 'btn_advanced', 'innerHTML' : 'Advanced Options'}, menu);
-		tmp = create_html_obj('div', {'classList' : 'button right', 'id' : 'btn_editor', 'innerHTML' : 'Logout'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button right', 'id' : 'btn_logout', 'innerHTML' : 'Logout'}, menu);
 		tmp.addEventListener('click', () => {
 			localStorage.removeItem('obtain.life.token');
 			window.location.href = '/';
@@ -315,7 +485,9 @@ class configuration_overview {
 
 		btn_overview.addEventListener('click', function(event) {
 			resource_handlers = {};
-			let view = new configuration_overview(document.querySelector('.body'));
+			clear_base();
+			build_sidemenu(document.querySelector('.leftSide'))
+			let view = new configuration_overview(document.querySelector('.rightSide'));
 		})
 	}
 
@@ -335,16 +507,31 @@ class configuration_overview {
 		socket.subscribe('configuration', (json_payload) => {
 			console.log('Got configs:', json_payload)
 			Object.keys(json_payload['configs']).forEach((server_name) => {
-				this.server = div({'classList' : 'server'}, this.main_area);
-				this.server_title = create_html_obj('h3', {'classList' : 'title'}, this.server);
-				this.server_title.innerHTML = server_name
+				let server = div({'classList' : 'server'}, this.main_area);
 
-				let options = table(
+				let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
+				let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
+				server_title.innerHTML = server_name
+				let server_addOption = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor'}, server_header)
+
+				let table_obj = table(
 					['Option', 'Value'],
 					json_payload['configs'][server_name],
-					{'classList' : 'table'}, this.server, (config_option_clicked) => {
+					{'classList' : 'table'}, server, (config_option_clicked) => {
 						show_description(config_option_clicked);
 				});
+				
+				server_addOption.addEventListener('click', () => {
+					let tr = table_obj.insertRow(1);  // puts it at the start
+					tr.classList = 'row';
+
+					let key_td = create_html_obj('td', {'classList' : 'column'}, tr);
+					let val_td = create_html_obj('td', {'classList' : 'column'}, tr);
+					let descr_td = create_html_obj('td', {'classList' : 'column'}, tr);
+
+					let key_input = create_html_obj('input', {'classList' : 'input'}, key_td);
+					let val_input = create_html_obj('input', {'classList' : 'input'}, val_td);
+				})
 				/*
 				Object.keys(json_payload['configs'][server_name]).forEach((config_option) => {
 					let value = json_payload['configs'][server_name][config_option]['value'];

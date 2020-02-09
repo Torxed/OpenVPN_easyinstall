@@ -2,6 +2,7 @@
 <html>
 <head>
 	<title>OpenVPN Web-AdminGUI</title>
+	<link rel="preload" href="/resources/js/openvpn.js" as="script">
 	<link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
 	<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="/resources/css/slider.css">
@@ -47,6 +48,7 @@
 		}
 		xhr_olife.send();
 	</script>
+	<script src="/resources/js/openvpn.js"></script>
 	<script src="/resources/js/gui.js"></script>
 	<script type="text/javascript">
 		let secret = "c8ee4162d1df58aadd4f9e70df2744ed13ba1d37e8bf5946b87aedb71d5c07da";
@@ -110,9 +112,22 @@
 			let profilename = create_html_obj('span', {'classList' : 'profilename', 'innerHTML' : 'Anton Hvornum'}, profileInfo);
 			let profilerole = create_html_obj('div', {'classList' : 'profilerole', 'innerHTML' : 'Administrator'}, profileInfo);
 
+			socket.subscribe('certificates', (json) => {
+				clear_base();
+				build_sidemenu(document.querySelector('.leftSide'))
+				let view = new certificate_overview(document.querySelector('.rightSide'), false);
+				view.parse_payload(json);
+			})
+
 			let categories = ['Configuration <i>(server)</i>', 'Certificates', 'Users & Clients'];
 			categories.forEach((category) => {
 				let categoryObj = create_html_obj('div', {'classList' : 'category'}, container);
+				categoryObj.id = category.split(' ')[0];
+				categoryObj.addEventListener('click', () => {
+					socket.send({
+						'_module' : categoryObj.id.toLowerCase()
+					})
+				})
 				let categoryHeader = create_html_obj('div', {'classList' : 'subheader', 'innerHTML' : category}, categoryObj);
 				if(category == 'Configuration <i>(server)</i>')
 					categoryHeader.classList.toggle('active');

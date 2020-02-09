@@ -81,6 +81,12 @@ h3 {
 
 .rightSide {
 	flex-grow: 1;
+	overflow: auto;
+}
+.centered {
+	justify-content: center;
+	align-items: center;
+	text-align: center;
 }
 
 .header {}
@@ -248,6 +254,20 @@ h3 {
 
 .overview {
 	padding: 10px;
+	display: flex;
+    flex-direction: row;
+}
+
+.certificates {
+	display: flex;
+    flex-direction: column;
+}
+
+.serverHeader {
+	display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
 }
 
 .title {
@@ -286,8 +306,28 @@ h3 {
 	margin-left: auto !important;
 }
 
+.green {
+	color: var(--g_primary);
+}
+
+.blue {
+	color: var(--blue);
+}
+
+.cursor {
+	cursor: pointer;
+}
+
 .machines {
 	padding: 30px;
+}
+
+.category {
+	cursor: pointer;
+}
+
+.category > *:hover {
+	color: var(--cream);
 }
 
 tr {
