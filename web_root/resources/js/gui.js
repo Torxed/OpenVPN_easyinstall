@@ -2,24 +2,20 @@ interfaces = {}
 
 let elements = {}; // Used for popups
 function popup(title_content, body_content, buttons_struct=null) {
-	let div = document.createElement('div');
-	div.id = 'popup_'+(Math.random() * 1001);
-	div.classList = 'popup';
-	let title = document.createElement('div');
-	title.classList = 'title';
+	let popup_window = create_html_obj('div', {'classList' : 'popup', 'id' : 'popup_'+(Math.random() * 1001)}, document.getElementsByTagName("body")[0])
+	let div = create_html_obj('div', {'classList' : 'popupbody'}, popup_window);
+
+	let title = create_html_obj('div', {'classList' : 'title'}, div);
 	if(typeof title_content === 'string')
 		title.innerHTML = title_content;
 	else
 		title.appendChild(title_content);
-	let body = document.createElement('div');
-	body.classList = 'body';
+
+	let body = create_html_obj('div', {'classList' : 'body'}, div);
 	if(typeof body_content === 'string')
 		body.innerHTML = body_content;
 	else
 		body.appendChild(body_content);
-	
-	div.appendChild(title);
-	div.appendChild(body);
 	
 	if(buttons_struct) {
 		let buttons = document.createElement('div');
@@ -35,9 +31,16 @@ function popup(title_content, body_content, buttons_struct=null) {
 		})
 		div.appendChild(buttons);
 	}
+
+	popup_window.addEventListener('click', (event) => {
+		if(event.target == popup_window) {
+			popup_window.remove();
+			document.querySelector('.container').style.filter = null;
+		}
+	})
 	elements[title] = div;
-	document.getElementsByTagName("body")[0].appendChild(div);
-	return div;
+	document.querySelector('.container').style.filter = 'blur(4px)';
+	return popup_window;
 }
 
 function append_stats_to_html_obj(obj, stats) {
@@ -319,8 +322,6 @@ class show_login {
 					});
 
 					two_factor_code.focus();
-					obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
-					obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
 					console.log();
 				} else if (data['status'] == 'success' && typeof data['token'] !== 'undefined') {
 					localStorage.setItem('obtain.life.token', data['token']);
@@ -436,8 +437,39 @@ class certificate_overview {
 					});
 
 					email.focus();
-					obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
-					obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
+				} else if(store=='ca') {
+					let popup_body = create_html_obj('div', {'classList' : 'card'});
+					
+					let popup_header = create_html_obj('div', {'classList' : 'header'}, popup_body);
+					popup_header.innerHTML = 'Create CA';
+
+					let inputs = create_html_obj('div', {'classList' : 'inputs'}, popup_body);
+					let common_name = create_html_obj('input', {'classList' : 'input', 'placeholder' : 'Common Name'}, inputs)
+					let email = create_html_obj('input', {'classList' : 'input', 'placeholder' : 'email'}, inputs)
+
+					popup_body.appendChild(inputs);
+
+					let obj = popup("Generate new Client Certificate", popup_body, {
+						"OK" : function(div) {
+							let cn = common_name.value;
+							if (cn.length == 0)
+								cn = 'server';
+							socket.send({
+								'_module' : 'certificates',
+								'action' : 'generate',
+								'ca' : null, // Setting the CA to None, will tell the backend it's a CA we're about to generate
+								'cert_data' : {
+									'emailAddress' : email.value,
+									'cn' : cn
+								}
+							})
+							div.remove();
+						}
+					});
+
+					email.focus();
+					//obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
+					//obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
 				}
 			})
 		})

@@ -1,10 +1,24 @@
 .popup {
+	position: absolute;
+    left: 0px;
+    top: 0px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.3);
+}
+
+.popupbody {
 	display: flex;
 	flex-direction: column;
 	border: 1px solid var(--blue);
+	background-color: var(--background-light);
 }
 
-.popup > .title {
+.popupbody > .title {
 	margin: 0px;
 	padding: 10px;
     color: var(--white);
@@ -24,47 +38,47 @@
     flex-direction: column;
 }
 
-.popup > .buttons {
+.popupbody > .buttons {
 	display: flex;
 	flex-direction: row;
 	border-top: 1px solid var(--light);
 }
 
-	.popup > .buttons > button {
+	.popupbody > .buttons > button {
 		background-color: var(--blue);
     	border: 0px;
     	padding: 5px;
 	}
 
-	.popup > .buttons > .Save {
+	.popupbody > .buttons > .Save {
 		flex: 1;
 		color: var(--power-on);
 		border-right: 1px solid var(--light);
 	}
-		.popup > .buttons > .Save:hover {
+		.popupbody > .buttons > .Save:hover {
 			font-weight: bold;
 		}
 
-	.popup > .buttons > .OK {
+	.popupbody > .buttons > .OK {
 		flex: 1;
 		color: var(--g_primary);
 		border-right: 1px solid var(--light);
 	}
-		.popup > .buttons > .OK:hover {
+		.popupbody > .buttons > .OK:hover {
 			font-weight: bold;
 		}
 
-	.popup > .buttons > .Discard {
+	.popupbody > .buttons > .Discard {
 		flex: 1;
 		color: var(--o_primary);
 	}
-		.popup > .buttons > .Discard:hover {
+		.popupbody > .buttons > .Discard:hover {
 			font-weight: bold;
 		}
-	.popup > .buttons > .Cancel {
+	.popupbody > .buttons > .Cancel {
 		flex: 1;
 		color: var(--o_primary);
 	}
-		.popup > .buttons > .Cancel:hover {
+		.popupbody > .buttons > .Cancel:hover {
 			font-weight: bold;
 		}

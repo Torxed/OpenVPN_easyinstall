@@ -153,10 +153,13 @@ class parser():
 			store['clients'][key_store[key].cert.get_subject().CN] = {'key' : key_store[key].key_path, 'cert' : key_store[key].cert_path}
 
 		if 'action' in data and data['action'] == 'generate':
-			if 'ca' in data:
+			if 'ca' in data and data['ca'] is not None:
 				## Generate a client certificate and sign it.
 				key, cert = generate_certificate(f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt', join=False, ca=ca_store[data["ca"]], **data["cert_data"])
 				store['clients'][cert.get_subject().CN] = {'key' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', 'cert' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt'}
+			else:
+				ca_key, ca_cert = generate_certificate(f'./secrets/pki/ca/{data["cert_data"]["cn"]}.key', f'./secrets/pki/ca/{data["cert_data"]["cn"]}.crt', join=False)
+				store['ca'][ca_cert.get_subject().CN] = {'key' : f'./secrets/pki/ca/{data["cert_data"]["cn"]}.key', 'cert' : f'./secrets/pki/ca/{data["cert_data"]["cn"]}.crt'}
 
 		if not 'get' in data:
 			return {'stores' : store}
