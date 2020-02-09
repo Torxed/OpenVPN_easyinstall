@@ -676,10 +676,10 @@ class configuration_overview {
 		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_topology', 'innerHTML' : 'Topology'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_security', 'innerHTML' : 'Security'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_routing', 'innerHTML' : 'Routing'}, menu);
-		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_scrpits', 'innerHTML' : 'Scrpits'}, menu);
-		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_management', 'innerHTML' : 'Live Changes'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_scripts', 'innerHTML' : 'Scripts'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_osoptions', 'innerHTML' : 'OS Options'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_variables', 'innerHTML' : 'Variables'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_management', 'innerHTML' : 'Live Management'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button shadowEnd', 'id' : 'btn_advanced', 'innerHTML' : 'Advanced Options'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button right', 'id' : 'btn_logout', 'innerHTML' : 'Logout'}, menu);
 		tmp.addEventListener('click', () => {

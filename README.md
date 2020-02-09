@@ -1,51 +1,48 @@
 OpenVPN_easyinstall
 ===================
 
-Python2+ based OpenVPN 2.X configurator &amp; installer<br>
-( *Requires Linux/Unix on the easy-install machine for now, will be converted later* )
-<br>
-<br>
-<br>
-
-**There are two modles**
-
----------------------
- - the online installer:
-
-![Visual representation](https://drive.google.com/uc?export=download&id=0B1eeO3A_DUEtaTJsbXFuNHpmNmc)
-
----------------------
-
-- The offline installer
- 
-Does everything the online installer does except deploy and test the connection.
-It simply builds and packages everything according to the specifications and stores it locally.
-
-The result is zip files in ./ from wherever the script was called for each client and a server.zip for the server.
-
----------------------
-
+Python3+ based OpenVPN 2.X configurator &amp; installer<br>.
+*(Requires Linux/Unix due to the dependencies)*
 
 Intention with Easy-Install
 ============
 
- - Installs all binaries (havn't descided if this is a good idea yet)
- - Generates all certificates
- - Generates configure files
- - Places everything in the proper place (even remote destinations in v1.0)
-
+ - Manage one or multiple OpenVPN configurations.
+ - Generate CA certificates via vanilla python-OpenSSL *(Not using easy-rsa or subprocess anymore)*
+ - Generate server and client certificates.
+ - Configure and manage IP's and routes *(optionally live while running)*.
+ - Generate one-time-use config/certificate download links.
 
 TODOs
 =====
 
- - Support configuration parameters instead of variables in the top of the code
- - Add the actual remote copy (including windows based destinations)
- - Add support to variable DH size, at the moment it only goes for the standard one (partially implemented)
- - Make the configuration generation more dynamic.
- - If possible, start OpenVPN server and at least 1 client and verify connection in the setup script.
+Make the identity manager optional, for now it works for debugging/testing but not for the general public.
+A lot of things heh, reworking this from a simple pythons script into a more useable web-application.
 
-Example
+Installation
 =======
-As simple as pi:
-``./setup.py`` or ``python setup.py``
-and watch your ./ directory for the *.zip files.
+
+```bash
+$ git clone --recurse-submodules -j8 https://github.com/Torxed/OpenVPN_easyinstall.git
+```
+
+All dependencies are submodules of this library.<br>
+All of which can be found in my repo's, they are:
+
+ * [slimHTTP](https://github.com/Torxed/slimHTTP.git) - HTTP(S) webserver with modular method requests and upgraders
+ * [spiderWeb](https://github.com/Torxed/spiderWeb.git) - Addon for slimHTTP which attaches an upgrader (handler) for websocket requests.
+ * [slimWebSocket](https://github.com/Torxed/slimWebSocket.git) - JavaScript framework to wrap websockets to act as a normal network socket.
+ * [python-olife](https://github.com/Torxed/python-olife.git) - library to talk to the identity manager.
+
+ Running it
+ ==========
+
+ There are some pre-requisits before running this.
+ The identity manager has some steps to claim a domain, once that's done logins can be done too.
+
+ Then it's quite simple:
+
+ ```bash
+ $ cd OpenVPN_easyinstall
+ $ sudo python easyinstall.py
+ ```
