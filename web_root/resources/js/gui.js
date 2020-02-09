@@ -389,7 +389,8 @@ class users_overview {
 			let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
 			let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
 			server_title.innerHTML = user
-			let view_conf = create_html_obj('i', {'classList' : 'fas fa-person-booth right blue cursor'}, server_header)
+			let download_conf = create_html_obj('i', {'classList' : 'fas fa-file-archive right blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Download</div>'}, server_header)
+			let view_conf = create_html_obj('i', {'classList' : 'fas fa-external-link-alt margin-left blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Open conf</div>'}, server_header)
 
 			let rows = {};
 			rows['proto'] = json['users'][user]['proto'];
@@ -480,7 +481,8 @@ class user_config {
 		let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
 		let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
 		server_title.innerHTML = json['userid'];
-		let view_conf = create_html_obj('i', {'classList' : 'fas fa-person-booth right blue cursor'}, server_header)
+		let delete_conf = create_html_obj('i', {'classList' : 'fas fa-minus-circle right red cursor fa-content', 'innerHTML' : '<div class="textbutton">Delete</div>'}, server_header)
+		let download_conf = create_html_obj('i', {'classList' : 'fas fa-file-archive margin-left blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Download</div>'}, server_header)
 
 		let table_obj = table(
 			['Option', 'Value'],
@@ -563,7 +565,7 @@ class certificate_overview {
 			let ca_header = create_html_obj('div', {'classList' : 'serverHeader'}, certificate);
 			let ca_title = create_html_obj('h3', {'classList' : 'title'}, ca_header);
 			ca_title.innerHTML = store + ' store';
-			let cert_add = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor'}, ca_header)
+			let cert_add = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Create Certificate</div>'}, ca_header)
 
 			let table_obj = cert_table(
 				['ID', 'Cert', 'Key'],
@@ -659,9 +661,6 @@ class configuration_overview {
 
 		this.build_header();
 		this.html_obj = this.build_overview();
-
-		this.send_subscribes();
-		this.send_init_command();
 	}
 
 	build_header() {
@@ -707,50 +706,33 @@ class configuration_overview {
 		return this.main_area.innerHTML;
 	}
 
-	send_subscribes() {
-		socket.subscribe('configuration', (json_payload) => {
-			console.log('Got configs:', json_payload)
-			Object.keys(json_payload['configs']).forEach((server_name) => {
-				let server = div({'classList' : 'server'}, this.main_area);
+	parse_payload(json_payload) {
+		Object.keys(json_payload['configs']).forEach((server_name) => {
+			let server = div({'classList' : 'server'}, this.main_area);
 
-				let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
-				let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
-				server_title.innerHTML = server_name
-				let server_addOption = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor'}, server_header)
+			let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
+			let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
+			server_title.innerHTML = server_name
+			let server_addOption = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Create additional option</div>'}, server_header)
 
-				let table_obj = table(
-					['Option', 'Value'],
-					json_payload['configs'][server_name],
-					{'classList' : 'table'}, server, (config_option_clicked) => {
-						show_description(config_option_clicked);
-				});
-				
-				server_addOption.addEventListener('click', () => {
-					let tr = table_obj.insertRow(1);  // puts it at the start
-					tr.classList = 'row';
+			let table_obj = table(
+				['Option', 'Value'],
+				json_payload['configs'][server_name],
+				{'classList' : 'table'}, server, (config_option_clicked) => {
+					show_description(config_option_clicked);
+			});
+			
+			server_addOption.addEventListener('click', () => {
+				let tr = table_obj.insertRow(1);  // puts it at the start
+				tr.classList = 'row';
 
-					let key_td = create_html_obj('td', {'classList' : 'column'}, tr);
-					let val_td = create_html_obj('td', {'classList' : 'column'}, tr);
-					let descr_td = create_html_obj('td', {'classList' : 'column'}, tr);
+				let key_td = create_html_obj('td', {'classList' : 'column'}, tr);
+				let val_td = create_html_obj('td', {'classList' : 'column'}, tr);
+				let descr_td = create_html_obj('td', {'classList' : 'column'}, tr);
 
-					let key_input = create_html_obj('input', {'classList' : 'input'}, key_td);
-					let val_input = create_html_obj('input', {'classList' : 'input'}, val_td);
-				})
-				/*
-				Object.keys(json_payload['configs'][server_name]).forEach((config_option) => {
-					let value = json_payload['configs'][server_name][config_option]['value'];
-					let options = json_payload['configs'][server_name][config_option]['options'];
-
-				})
-				*/
+				let key_input = create_html_obj('input', {'classList' : 'input'}, key_td);
+				let val_input = create_html_obj('input', {'classList' : 'input'}, val_td);
 			})
-		})
-	}
-
-	send_init_command() {
-		socket.send({
-			'_module' : 'configuration',
-			'get' : 'overview'
 		})
 	}
 }

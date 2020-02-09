@@ -27,6 +27,8 @@
 	--o_dark: #c63f17;
 	--o_text: #000000;
 
+	--red: #e81123;
+
 	--g_primary: #9ccc65;
 	--g_light: #cfff95;
 	--g_dark: #6b9b37;
@@ -64,6 +66,20 @@ h3, table, tr, td {
 h3 {
 	font-size: 20px;
 	font-weight: bold;
+}
+
+.fa-content {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-content: center;
+	align-items: center;
+}
+
+.textbutton {
+	font-size: 14px;
+	margin-left: 4px;
+	font-family: 'Source Sans Pro';
 }
 
 .container {
@@ -161,6 +177,7 @@ h3 {
 	align-items: center;
 	flex-grow: 1;
 	overflow: hidden;
+	padding-left: 10px;
 }
 
 .logoheader {
@@ -308,12 +325,20 @@ h3 {
 	margin-left: auto !important;
 }
 
+.margin-left {
+	margin-left: 10px;
+}
+
 .green {
 	color: var(--g_primary);
 }
 
 .blue {
 	color: var(--blue);
+}
+
+.red {
+	color: var(--red);
 }
 
 .cursor {
