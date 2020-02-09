@@ -53,7 +53,11 @@ function append_stats_to_html_obj(obj, stats) {
 		else if (key == 'classList')
 			obj.classList = stats.classList;
 		else if (key == 'innerHTML')
-			obj.innerHTML = stats['innerHTML'];
+			if (typeof stats['innerHTML'] == 'object') {
+				obj.appendChild(stats['innerHTML'])
+			} else {
+				obj.innerHTML = stats['innerHTML'];
+			}
 		else
 			obj.setAttribute(key, stats[key])
 	})
@@ -707,32 +711,37 @@ class configuration_overview {
 	}
 
 	parse_payload(json_payload) {
+		let server_config_selector = create_html_obj('select', {'classList' : 'input'});
 		Object.keys(json_payload['configs']).forEach((server_name) => {
-			let server = div({'classList' : 'server'}, this.main_area);
+			let option = create_html_obj('option', {'value' : server_name, 'innerHTML' : server_name}, server_config_selector);
+		})
 
-			let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
-			let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
-			server_title.innerHTML = server_name
-			let server_addOption = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Create additional option</div>'}, server_header)
+		let selected_conf = server_config_selector.options[server_config_selector.selectedIndex].value;
 
-			let table_obj = table(
-				['Option', 'Value'],
-				json_payload['configs'][server_name],
-				{'classList' : 'table'}, server, (config_option_clicked) => {
-					show_description(config_option_clicked);
-			});
-			
-			server_addOption.addEventListener('click', () => {
-				let tr = table_obj.insertRow(1);  // puts it at the start
-				tr.classList = 'row';
+		let server = div({'classList' : 'server'}, this.main_area);
+		console.log('Selected:', selected_conf);
 
-				let key_td = create_html_obj('td', {'classList' : 'column'}, tr);
-				let val_td = create_html_obj('td', {'classList' : 'column'}, tr);
-				let descr_td = create_html_obj('td', {'classList' : 'column'}, tr);
+		let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
+		let server_title = create_html_obj('h3', {'classList' : 'title', 'innerHTML' : server_config_selector}, server_header);
+		let server_addOption = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Insert custom option</div>'}, server_header)
 
-				let key_input = create_html_obj('input', {'classList' : 'input'}, key_td);
-				let val_input = create_html_obj('input', {'classList' : 'input'}, val_td);
-			})
+		let table_obj = table(
+			['Option', 'Value'],
+			json_payload['configs'][selected_conf],
+			{'classList' : 'table'}, server, (config_option_clicked) => {
+				show_description(config_option_clicked);
+		});
+		
+		server_addOption.addEventListener('click', () => {
+			let tr = table_obj.insertRow(1);  // puts it at the start
+			tr.classList = 'row';
+
+			let key_td = create_html_obj('td', {'classList' : 'column'}, tr);
+			let val_td = create_html_obj('td', {'classList' : 'column'}, tr);
+			let descr_td = create_html_obj('td', {'classList' : 'column'}, tr);
+
+			let key_input = create_html_obj('input', {'classList' : 'input'}, key_td);
+			let val_input = create_html_obj('input', {'classList' : 'input'}, val_td);
 		})
 	}
 }

@@ -55,6 +55,15 @@
 	<script src="/resources/js/gui.js"></script>
 	<script type="text/javascript">
 		let secret = "c8ee4162d1df58aadd4f9e70df2744ed13ba1d37e8bf5946b87aedb71d5c07da";
+		let config_store = {
+			'servers' : {},
+			'clients' : {}
+		}
+
+		let cert_store = {
+			'ca' : {},
+			'users' : {}
+		}
 
 		window.onload = function() {
 			console.log()
@@ -75,7 +84,7 @@
 						build_sidemenu(document.querySelector('.leftSide'))
 
 						socket.send({
-							'_module' : 'configuration',
+							'_module' : 'server',
 							'get' : 'overview'
 						})
 					} else {
@@ -99,6 +108,13 @@
 			})
 		}
 
+		function update_server_config_cache(json) {
+			console.log('Updating config cache:', json);
+			Object.keys(json['configs']).forEach((common_name) => {
+				config_store['servers'][common_name] = json['configs'][common_name];
+			})
+		}
+
 		function clear_base() {
 			let leftSide = document.querySelector('.leftSide');
 			let rightSide = document.querySelector('.rightSide');
@@ -119,7 +135,11 @@
 			let profilename = create_html_obj('span', {'classList' : 'profilename', 'innerHTML' : 'Anton Hvornum'}, profileInfo);
 			let profilerole = create_html_obj('div', {'classList' : 'profilerole', 'innerHTML' : 'Administrator'}, profileInfo);
 
-			socket.subscribe('configuration', (json) => {
+			socket.clear_subscribers();
+
+			socket.subscribe('server', (json) => {
+				update_server_config_cache(json);
+
 				clear_base();
 				let view = new configuration_overview(document.querySelector('.rightSide'), false);
 				view.parse_payload(json);
@@ -141,7 +161,7 @@
 				view.parse_payload(json);
 			})
 
-			let categories = ['Configuration <i>(server)</i>', 'Certificates', 'Users & Clients'];
+			let categories = ['Server setup', 'Certificates', 'Users & Clients'];
 			categories.forEach((category) => {
 				let categoryObj = create_html_obj('div', {'classList' : 'category', 'id' : category.split(' ')[0]}, container);
 				let categoryHeader = create_html_obj('div', {'classList' : 'subheader', 'innerHTML' : category}, categoryObj);
