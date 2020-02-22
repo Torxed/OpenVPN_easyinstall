@@ -243,7 +243,10 @@ h3 {
 		margin-bottom: 5px;
 		border-radius: 3px;
 		border: 1px solid var(--borders);
-		padding: 3px;
+		padding-top: 3px;
+		padding-bottom: 3px;
+		width: 100%;
+		text-indent: 5px;
 	}
 
 	.loginbox > .title {

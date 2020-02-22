@@ -360,15 +360,16 @@ class users_overview {
 
 		// Buttons:
 		let tmp = null;
-		let btn_overview = create_html_obj('div', {'classList' : 'button active shadow', 'id' : 'btn_overview', 'innerHTML' : 'Overview'}, menu);
+		let btn_general = create_html_obj('div', {'classList' : 'button active shadow', 'id' : 'btn_general', 'innerHTML' : 'General'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_ca', 'innerHTML' : 'User config'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button shadowEnd', 'id' : 'btn_routing', 'innerHTML' : 'Routing'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button right', 'id' : 'btn_logout', 'innerHTML' : 'Logout'}, menu);
 		tmp.addEventListener('click', () => {
 			localStorage.removeItem('obtain.life.token');
 			window.location.href = '/';
 		})
 
-		btn_overview.addEventListener('click', function(event) {
+		btn_general.addEventListener('click', function(event) {
 			
 		})
 
@@ -453,15 +454,16 @@ class user_config {
 
 		// Buttons:
 		let tmp = null;
-		let btn_overview = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_overview', 'innerHTML' : 'Overview'}, menu);
+		let btn_general = create_html_obj('div', {'classList' : 'button shadow', 'id' : 'btn_general', 'innerHTML' : 'General'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button active shadow', 'id' : 'btn_user', 'innerHTML' : 'User config'}, menu);
+		tmp = create_html_obj('div', {'classList' : 'button shadowEnd', 'id' : 'btn_routing', 'innerHTML' : 'Routing'}, menu);
 		tmp = create_html_obj('div', {'classList' : 'button right', 'id' : 'btn_logout', 'innerHTML' : 'Logout'}, menu);
 		tmp.addEventListener('click', () => {
 			localStorage.removeItem('obtain.life.token');
 			window.location.href = '/';
 		})
 
-		btn_overview.addEventListener('click', function(event) {
+		btn_general.addEventListener('click', function(event) {
 			
 		})
 
