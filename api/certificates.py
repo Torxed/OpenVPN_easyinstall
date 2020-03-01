@@ -176,6 +176,28 @@ def generate_certificate(key, cert=None, **kwargs):
 
 	return priv_key, certificate
 
+def generate_tls_auth(key_size=2048): # in bits
+	key_data = ''.join(format(byte, '02x') for byte in os.urandom(key_size//8))
+
+	key_str_repr = '#\r\n'
+	key_str_repr += f'# {key_size} bit OpenVPN static key\r\n'
+	key_str_repr += '#\r\n'
+	key_str_repr += '-----BEGIN OpenVPN Static key V1-----\r\n'
+	for i in range(0, len(key_data), 32):
+		key_str_repr += f'{key_data[i:i+32]}\r\n'
+	key_str_repr += '-----END OpenVPN Static key V1-----'
+
+	return key_str_repr
+
+def save_tls_auth_key(key_file, key_data):
+	if not os.path.isdir(os.path.dirname(key_file)):
+		os.makedirs(os.path.dirname(key_file))
+
+	with open(key_file, 'w') as fh:
+		fh.write(key_data)
+
+	return True
+
 def load_CAs(root='./secrets/pki/ca'):
 	ca_store = {}
 	for key in Path('./secrets/pki/ca').rglob('*.key'):
@@ -206,6 +228,13 @@ def load_dhs():
 		key_store[key.name[:-4]] = key_full_path
 	return key_store
 
+def load_tls():
+	key_store = {}
+	for key in Path('./secrets/pki/tls_auth').rglob('*.key'):
+		key_full_path = str(key.resolve().absolute())
+		key_store[key.name[:-4]] = key_full_path
+	return key_store
+
 class parser():
 	def process(self, path, client, data, headers, fileno, addr, *args, **kwargs):
 		print('### Certificates ###\n', data, client)
@@ -213,13 +242,14 @@ class parser():
 		ca_store = load_CAs()
 		key_store = load_keys(ca_store)
 		dh_store = load_dhs()
+		tls_store = load_tls()
 
 		store = {
 			'ca' : {},
 			'certificate' : {},
 			'key' : {},
 			'dh' : dh_store,
-			'tls_auth' : {}
+			'tls_auth' : tls_store
 		}
 
 		for ca in ca_store:
@@ -242,6 +272,13 @@ class parser():
 				save_diffie_hellman(key_file, key_data)
 				
 				store['dh'][data["diffie_hellman"]] = key_file
+
+			elif 'tls_auth' in data:
+				key_file = f'./secrets/pki/tls_auth/{data["tls_auth"]}.key'
+				key_data = generate_tls_auth()
+
+				save_tls_auth_key(key_file, key_data)
+				store['tls_auth'][data["tls_auth"]] = key_file
 			else:
 				ca_key, ca_cert = generate_certificate(f'./secrets/pki/ca/{data["cert_data"]["cn"]}.key', f'./secrets/pki/ca/{data["cert_data"]["cn"]}.crt', join=False, cn=data['cert_data']['cn'])
 				store['ca'][ca_cert.get_subject().CN] = {'key' : f'./secrets/pki/ca/{data["cert_data"]["cn"]}.key', 'cert' : f'./secrets/pki/ca/{data["cert_data"]["cn"]}.crt'}

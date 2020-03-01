@@ -845,6 +845,36 @@ class certificate_overview {
 					common_name.focus();
 					//obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
 					//obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
+				} else if(store=='tls_auth') {
+					let popup_body = create_html_obj('div', {'classList' : 'card'});
+					
+					let popup_header = create_html_obj('div', {'classList' : 'header'}, popup_body);
+					popup_header.innerHTML = 'Create a shared TLS secret key';
+
+					let inputs = create_html_obj('div', {'classList' : 'inputs'}, popup_body);
+					let common_name = create_html_obj('input', {'classList' : 'input', 'placeholder' : 'Key name'}, inputs);
+					let key_size_input = create_html_obj('input', {'classList' : 'input', 'placeholder' : 'Key Size (optional)', 'value' : 2048}, inputs);
+
+					popup_body.appendChild(inputs);
+
+					let obj = popup("Generate TLS Auth key", popup_body, {
+						"OK" : function(div) {
+							let key_size = key_size_input.value;
+							if (key_size.length == 0)
+								key_size = '2048';
+							socket.send({
+								'_module' : 'certificates',
+								'action' : 'generate',
+								'tls_auth' : common_name.value,
+								'key_size' : key_size
+							})
+							div.remove();
+						}
+					});
+
+					common_name.focus();
+					//obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
+					//obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
 				}
 			})
 		})
