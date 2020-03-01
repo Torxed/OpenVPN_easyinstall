@@ -79,6 +79,7 @@ h3 {
 .textbutton {
 	font-size: 14px;
 	margin-left: 4px;
+	font-weight: 900;
 	font-family: 'Source Sans Pro';
 }
 
@@ -330,6 +331,9 @@ h3 {
 
 .margin-left {
 	margin-left: 10px;
+}
+.margin-right {
+	margin-right: 10px;
 }
 
 .green {

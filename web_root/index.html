@@ -109,10 +109,12 @@
 		}
 
 		function update_server_config_cache(json) {
-			console.log('Updating config cache:', json);
-			Object.keys(json['configs']).forEach((common_name) => {
-				config_store['servers'][common_name] = json['configs'][common_name];
-			})
+			if (typeof json['configs'] !== 'undefined' && json['file_content'] === 'undefined') {
+				console.log('Updating config cache:', json);
+				Object.keys(json['configs']).forEach((common_name) => {
+					config_store['servers'][common_name] = json['configs'][common_name];
+				})
+			}
 		}
 
 		function clear_base() {

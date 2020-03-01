@@ -91,7 +91,7 @@ def read_ovpn_conf(filename):
 			if '#' in line: line = line.split('#', 1)[0]
 			line = line.strip()
 
-			print(line)
+			#print(line)
 			if ' ' in line:
 				key, val = line.split(' ', 1)
 			else:
@@ -111,6 +111,26 @@ class parser():
 				reload_config_cache()
 
 				return {'configs' : configs}
+			elif data['get'] == 'config_file':
+				target = data['target']
+				if not target in configs: return {'status' : 'failed', 'message' : 'This config does not exist.'}
+
+				config_file_content = ''
+				for key, val in configs[target].items():
+					if type(val) in (list, tuple):
+						for option in val:
+							if type(option) is str:
+								if key == 'push' and ' ' in option and not '"' in option: option = f'"{option}"'
+
+							config_file_content += f'{key} {option}\r\n'
+						continue
+					elif type(val) == bool:
+						config_file_content += f'{key}\r\n'
+						continue
+					
+					config_file_content += f'{key} {val}\r\n'
+
+				return {'status' : 'successful', 'target' : target, 'file_content' : config_file_content[:-2]} # Strip the last two line endings.
 
 		reload_config_cache()
 		return {'configs' : configs}

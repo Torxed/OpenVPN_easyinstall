@@ -712,6 +712,19 @@ class configuration_overview {
 		return this.main_area.innerHTML;
 	}
 
+	download(filename, text) {
+		let _a = document.createElement('a');
+		_a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+		_a.setAttribute('download', filename);
+
+		_a.style.display = 'none';
+		document.body.appendChild(_a);
+
+		_a.click();
+
+		document.body.removeChild(_a);
+	}
+
 	parse_payload(json_payload) {
 		let server_config_selector = create_html_obj('select', {'classList' : 'input'});
 		Object.keys(json_payload['configs']).forEach((server_name) => {
@@ -725,7 +738,8 @@ class configuration_overview {
 
 		let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
 		let server_title = create_html_obj('h3', {'classList' : 'title', 'innerHTML' : server_config_selector}, server_header);
-		let server_addOption = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Insert custom option</div>'}, server_header)
+		let server_downloadButton = create_html_obj('i', {'classList' : 'fas fa-file-download right blue cursor fa-content margin-right', 'innerHTML' : '<div class="textbutton">Download Conf</div>'}, server_header)
+		let server_addOption = create_html_obj('i', {'classList' : 'far fa-plus-square blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Add option</div>'}, server_header)
 
 		let table_obj = table(
 			['Option', 'Value'],
@@ -733,6 +747,19 @@ class configuration_overview {
 			{'classList' : 'table'}, server, (config_option_clicked) => {
 				show_description(config_option_clicked);
 		});
+
+		server_downloadButton.addEventListener('click', () => {
+			socket.subscribe('server', (json) => {
+				if(typeof json['file_content'] !== 'undefined' && typeof json['target'] !== 'undefined') {
+					this.download(json['target']+'.ovpn', json['file_content'])
+				}
+			})
+			socket.send({
+				'_module' : 'server',
+				'get' : 'config_file',
+				'target' : server_config_selector.options[server_config_selector.selectedIndex].value
+			})
+		})
 		
 		server_addOption.addEventListener('click', () => {
 			let tr = table_obj.insertRow(1);  // puts it at the start
