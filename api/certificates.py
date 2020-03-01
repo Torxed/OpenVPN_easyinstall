@@ -147,7 +147,7 @@ def generate_certificate(key, cert=None, **kwargs):
 		req.get_subject().CN = kwargs['cn']
 		req.get_subject().emailAddress = kwargs['email']
 		req.set_pubkey(priv_key)
-		req.sign(priv_key, 'md5')
+		req.sign(priv_key, 'sha512')
 
 		certificate = X509()
 		certificate.set_serial_number(serialnumber)
@@ -156,7 +156,7 @@ def generate_certificate(key, cert=None, **kwargs):
 		certificate.set_issuer(kwargs['ca'].cert.get_subject())
 		certificate.set_subject(req.get_subject())
 		certificate.set_pubkey(req.get_pubkey())
-		certificate.sign(kwargs['ca'].key, 'md5')
+		certificate.sign(kwargs['ca'].key, 'sha512')
 
 	cert_dump = dump_certificate(FILETYPE_PEM, certificate)
 	key_dump = dump_privatekey(FILETYPE_PEM, priv_key)
@@ -237,7 +237,7 @@ def load_tls():
 
 class parser():
 	def process(self, path, client, data, headers, fileno, addr, *args, **kwargs):
-		print('### Certificates ###\n', data, client)
+		#print('### Certificates ###\n', data, client)
 
 		ca_store = load_CAs()
 		key_store = load_keys(ca_store)
@@ -286,6 +286,8 @@ class parser():
 		if 'get' in data:
 			if data['get'] in store:
 				return {data['get'] : store[data['get']]}
+			else:
+				print(f'Unknown get from store: {data["get"]}')
 
 		return {'stores' : store}
 

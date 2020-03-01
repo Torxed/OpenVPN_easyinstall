@@ -157,7 +157,7 @@ class pre_parser():
 			log(f'Invalid request sent, missing _module or _id in JSON data: {data[:200]}', level=3, origin='pre_parser', function='parse')
 			return
 
-		print(json.dumps(data, indent=4))
+		#print(json.dumps(data, indent=4))
 
 		## TODO: Add path security!
 		module_to_load = find_final_module_path('./api', data)

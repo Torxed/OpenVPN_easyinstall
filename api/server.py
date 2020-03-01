@@ -107,7 +107,7 @@ def reload_config_cache():
 
 class parser():
 	def process(self, path, client, data, headers, fileno, addr, *args, **kwargs):
-		print('### Configuration ###\n', data, client)
+		#print('### Configuration ###\n', data, client)
 		if 'get' in data:
 			if data['get'] == 'server':
 				# TODO: Old legacy code?!
@@ -147,6 +147,18 @@ class parser():
 							config_file_content += key_file.read()
 						config_file_content += '</key>\r\n'
 						continue
+					elif key == 'dh':
+						config_file_content += '<dh>\r\n'
+						with open(f'./secrets/pki/dh/{val}') as dh_file:
+							config_file_content += dh_file.read()
+						config_file_content += '</dh>\r\n'
+						continue
+					elif key == 'tls-auth':
+						config_file_content += '<tls-auth>\r\n'
+						with open(f'./secrets/pki/tls_auth/{val}') as key_file:
+							config_file_content += key_file.read()+'\r\n'
+						config_file_content += '</tls-auth>\r\n'
+						continue
 					elif type(val) == bool:
 						config_file_content += f'{key}\r\n'
 						continue
@@ -161,6 +173,7 @@ class parser():
 			if not data['target'] in configs: return {'status' : 'failed', 'message' : 'No such config in directory.'}
 
 			for key, val in data['update'].items():
+				print(f'Updating config {data["target"]}: {key} = {val}')
 				configs[data['target']][key] = val
 
 			#print(json.dumps(configs, indent=4))

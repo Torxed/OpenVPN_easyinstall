@@ -340,10 +340,22 @@ function table(headers, entries, stats, parent, row_click=null, special_columns=
 							socket.subscribe('certificates', (json) => {
 								if(typeof json['dh'] !== 'undefined') {
 									Object.keys(json['dh']).forEach((cert_id) => {
-										let option = create_html_obj('option', {'value' : cert_id, 'innerHTML' : cert_id}, input_obj);
+										let option = create_html_obj('option', {'value' : cert_id+'.pem', 'innerHTML' : cert_id+'.pem'}, input_obj);
 										if(cert_id == entries[row])
 											option.selected = true;
 									})
+									if(entries[row] !== input_obj.options[input_obj.selectedIndex].value) {
+										// A default-placeholder was found in the config,
+										// and our cert store does not contain it, so update the server
+										// with whatever we have selected here.
+										socket.send({
+											'_module' : 'server',
+											'target' : kwargs['server_name'],
+											'update' : {
+												'dh' : input_obj.options[input_obj.selectedIndex].value
+											}
+										})
+									}
 								}
 							})
 							socket.send({
@@ -355,11 +367,23 @@ function table(headers, entries, stats, parent, row_click=null, special_columns=
 							input_obj = create_html_obj('select', {'classList' : 'input'}, column_obj);
 							socket.subscribe('certificates', (json) => {
 								if(typeof json['tls_auth'] !== 'undefined') {
-									Object.keys(json['tls_auth']).forEach((cert_id) => {
-										let option = create_html_obj('option', {'value' : cert_id, 'innerHTML' : cert_id}, input_obj);
-										if(cert_id == entries[row])
+									Object.keys(json['tls_auth']).forEach((key_id) => {
+										let option = create_html_obj('option', {'value' : key_id+'.key', 'innerHTML' : key_id+'.key'}, input_obj);
+										if(key_id == entries[row])
 											option.selected = true;
 									})
+									if(entries[row] !== input_obj.options[input_obj.selectedIndex].value) {
+										// A default-placeholder was found in the config,
+										// and our cert store does not contain it, so update the server
+										// with whatever we have selected here.
+										socket.send({
+											'_module' : 'server',
+											'target' : kwargs['server_name'],
+											'update' : {
+												'tls-auth' : input_obj.options[input_obj.selectedIndex].value
+											}
+										})
+									}
 								}
 							})
 							socket.send({
