@@ -282,9 +282,10 @@ h3 {
 .certificates {
 	display: flex;
     flex-direction: column;
+    min-width: 400px;
 }
 
-.serverHeader {
+.serverHeader, .clientHeader, .certificateHeader {
 	display: flex;
     flex-direction: row;
     justify-content: center;

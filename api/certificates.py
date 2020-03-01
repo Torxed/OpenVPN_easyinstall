@@ -99,6 +99,9 @@ def generate_certificate(key, cert=None, **kwargs):
 	cert_dump = dump_certificate(FILETYPE_PEM, certificate)
 	key_dump = dump_privatekey(FILETYPE_PEM, priv_key)
 
+	if not os.path.isdir(os.path.dirname(key)):
+		os.makedirs(os.path.dirname(key))
+
 	if kwargs['join']:
 		with open(key, 'wb') as fh:
 			fh.write(cert_dump)
@@ -117,7 +120,7 @@ def load_CAs(root='./secrets/pki/ca'):
 		key_full_path = str(key.resolve().absolute())
 		relative_path = key_full_path.replace(os.getcwd(), '.')
 
-		ca_store[key.name] = CA(relative_path, f'{relative_path[:-4]}.crt')
+		ca_store[key.name[:-4]] = CA(relative_path, f'{relative_path[:-4]}.crt')
 	return ca_store
 
 def load_keys(ca_store):
@@ -143,26 +146,36 @@ class parser():
 
 		store = {
 			'ca' : {},
-			'clients' : {}
+			'certificate' : {},
+			'key' : {},
+			'dh' : {},
+			'tls_auth' : {}
 		}
 
 		for ca in ca_store:
 			store['ca'][ca_store[ca].cert.get_subject().CN] = {'key' : ca_store[ca].key_path, 'cert' : ca_store[ca].cert_path}
 
 		for key in key_store:
-			store['clients'][key_store[key].cert.get_subject().CN] = {'key' : key_store[key].key_path, 'cert' : key_store[key].cert_path}
+			store['certificate'][key_store[key].cert.get_subject().CN] = {'key' : key_store[key].key_path, 'cert' : key_store[key].cert_path}
+			store['key'][key_store[key].cert.get_subject().CN] = {'key' : key_store[key].key_path, 'cert' : key_store[key].cert_path}
 
 		if 'action' in data and data['action'] == 'generate':
 			if 'ca' in data and data['ca'] is not None:
 				## Generate a client certificate and sign it.
+
+				print(ca_store)
 				key, cert = generate_certificate(f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt', join=False, ca=ca_store[data["ca"]], **data["cert_data"])
-				store['clients'][cert.get_subject().CN] = {'key' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', 'cert' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt'}
+				store['certificate'][cert.get_subject().CN] = {'key' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', 'cert' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt'}
+				store['key'][cert.get_subject().CN] = {'key' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', 'cert' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt'}
 			else:
-				ca_key, ca_cert = generate_certificate(f'./secrets/pki/ca/{data["cert_data"]["cn"]}.key', f'./secrets/pki/ca/{data["cert_data"]["cn"]}.crt', join=False)
+				ca_key, ca_cert = generate_certificate(f'./secrets/pki/ca/{data["cert_data"]["cn"]}.key', f'./secrets/pki/ca/{data["cert_data"]["cn"]}.crt', join=False, cn=data['cert_data']['cn'])
 				store['ca'][ca_cert.get_subject().CN] = {'key' : f'./secrets/pki/ca/{data["cert_data"]["cn"]}.key', 'cert' : f'./secrets/pki/ca/{data["cert_data"]["cn"]}.crt'}
 
-		if not 'get' in data:
-			return {'stores' : store}
+		if 'get' in data:
+			if data['get'] in store:
+				return {data['get'] : store[data['get']]}
+
+		return {'stores' : store}
 
 if __name__ == '__main__':
 	ca_key, ca_cert = generate_certificate('../secrets/pki/ca/ca.key', '../secrets/pki/ca/ca.crt', join=False)

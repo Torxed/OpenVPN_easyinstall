@@ -11,7 +11,7 @@
 	<link rel="stylesheet" type="text/css" href="/resources/css/gui.css">
 	<link rel="stylesheet" type="text/css" href="/resources/css/popup.css">
 	<link rel="icon" type="image/png" href="/resources/images/logo.png" />
-	<script type="text/javascript">
+	<!--<script type="text/javascript">
 		let socket = null;
 		let olife_socket = null;
 		let life = null;
@@ -25,12 +25,13 @@
 				script.innerHTML = this.responseText;
 				document.head.appendChild(script);
 
-				socket = new slimWebSocket('wss://127.0.0.1');
+				socket = new slimWebSocket('wss://172.16.13.37');
 				olife_socket = new slimWebSocket('wss://obtain.life');
 			}
 		}
 		xhr.send();
-	</script>
+	</script>-->
+	<script src="/slimWebSocket/slimWebSocket.js"></script>
 	<script type="text/javascript">
 		// Loading JavaScript from a cross-site resource is blocked on GitHub.
 		// But there's nothing stopping us from downloading the script as a
@@ -54,6 +55,9 @@
 	<script src="/resources/js/openvpn.js"></script>
 	<script src="/resources/js/gui.js"></script>
 	<script type="text/javascript">
+		let socket = new slimWebSocket('wss://127.0.0.1');
+		let olife_socket = new slimWebSocket('wss://obtain.life');
+
 		let secret = "c8ee4162d1df58aadd4f9e70df2744ed13ba1d37e8bf5946b87aedb71d5c07da";
 		let config_store = {
 			'servers' : {},
@@ -126,6 +130,13 @@
 			return rightSide;
 		}
 
+		function update_cert_store_cache(json) {
+			//json['stores']
+			Object.keys(json['stores']).forEach((store) => {
+				cert_store[store] = json['stores'][store]
+			})
+		}
+
 		function build_sidemenu(container) {
 			let categoriesHeader = create_html_obj('div', {'classList' : 'logoheader dark'}, container);
 			let logoname_holder = create_html_obj('div', {'classList' : 'logoholder'}, categoriesHeader)
@@ -142,15 +153,20 @@
 			socket.subscribe('server', (json) => {
 				update_server_config_cache(json);
 
-				clear_base();
-				let view = new configuration_overview(document.querySelector('.rightSide'), false);
-				view.parse_payload(json);
+				if (typeof json['file_content'] === 'undefined' && typeof json['status'] === 'undefined') {
+					clear_base();
+					let view = new configuration_overview(document.querySelector('.rightSide'), false);
+					view.parse_payload(json);
+				}
 			})
 			socket.subscribe('certificates', (json) => {
-				clear_base();
-				//build_sidemenu(document.querySelector('.leftSide'))
-				let view = new certificate_overview(document.querySelector('.rightSide'), false);
-				view.parse_payload(json);
+				if (typeof json['stores'] !== 'undefined') {
+					clear_base();
+					update_cert_store_cache(json);
+					//build_sidemenu(document.querySelector('.leftSide'))
+					let view = new certificate_overview(document.querySelector('.rightSide'), false);
+					view.parse_payload(json);
+				}
 			})
 			socket.subscribe('users', (json) => {
 				clear_base();

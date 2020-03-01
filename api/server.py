@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 configs = {}
@@ -97,6 +98,7 @@ def read_ovpn_conf(filename):
 			else:
 				key, val = line, True
 			conf[key] = val
+
 	return expand_helper_directives(conf)
 
 def reload_config_cache():
@@ -122,7 +124,27 @@ class parser():
 							if type(option) is str:
 								if key == 'push' and ' ' in option and not '"' in option: option = f'"{option}"'
 
+
 							config_file_content += f'{key} {option}\r\n'
+						continue
+					elif key == 'ca':
+						config_file_content += '<ca>\r\n'
+						with open(f'./secrets/pki/ca/{val}') as ca_file:
+							config_file_content += ca_file.read()
+						config_file_content += '</ca>\r\n'
+						continue
+					elif key == 'cert':
+						config_file_content += '<cert>\r\n'
+						print('Embedding:', f'./secrets/pki/issued/{val}')
+						with open(f'./secrets/pki/issued/{val}') as cert_File:
+							config_file_content += cert_File.read()
+						config_file_content += '</cert>\r\n'
+						continue
+					elif key == 'key':
+						config_file_content += '<key>\r\n'
+						with open(f'./secrets/pki/issued/{val}') as key_file:
+							config_file_content += key_file.read()
+						config_file_content += '</key>\r\n'
 						continue
 					elif type(val) == bool:
 						config_file_content += f'{key}\r\n'
@@ -132,5 +154,14 @@ class parser():
 
 				return {'status' : 'successful', 'target' : target, 'file_content' : config_file_content[:-2]} # Strip the last two line endings.
 
-		reload_config_cache()
-		return {'configs' : configs}
+			reload_config_cache()
+			return {'configs' : configs}
+		elif 'update' in data and 'target' in data:
+			if not data['target'] in configs: return {'status' : 'failed', 'message' : 'No such config in directory.'}
+
+			for key, val in data['update'].items():
+				configs[data['target']][key] = val
+
+			#print(json.dumps(configs, indent=4))
+			return {'status' : 'success'}
+			return {'configs' : configs} ## <-- Will cuase a loop, because it will trigger a re-render of overview which will reload the cache. So before we do this, we need to move the in-mem configs to disk again before reload is called.

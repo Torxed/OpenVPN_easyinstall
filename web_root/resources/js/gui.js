@@ -128,8 +128,15 @@ function inline_table(headers, entries, stats, parent) {
 				input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'Enter a netmask'}, column_obj);
 				input_obj.value = ''; //entries[column_name];
 				break;
+			case '!certificates':
+				input_obj = create_html_obj('select', {'classList' : 'input'}, column_obj);
+			//	openvpn_options[row].forEach((option_text) => {
+			//		let option = create_html_obj('option', {'value' : option_text, 'innerHTML' : option_text}, select)
+			//		if(option_text == entries[row])
+			//			option.selected = true;
+			//	})
 			default:
-				console.log('Unknown table column option:', entries[column_name])
+				//console.log('Unknown table column option:', entries[column_name])
 				input_obj = create_html_obj('div', {'classList' : 'column'}, column_obj);
 				input_obj.innerHTML = entries[column_name];
 				break;
@@ -159,7 +166,9 @@ function cert_table(headers, entries, stats, parent, row_click=null, special_col
 	return o;
 }
 
-function table(headers, entries, stats, parent, row_click=null, special_columns={}) {
+function table(headers, entries, stats, parent, row_click=null, special_columns={}, kwargs={}) {
+	// This function has become VERY situation-dependant..
+	// TODO: Look this over and see which code we can split out..
 	let o = create_html_obj('table', stats, parent);
 
 	let header = create_html_obj('tr', {'classList' : 'tableheader'}, o);
@@ -207,8 +216,165 @@ function table(headers, entries, stats, parent, row_click=null, special_columns=
 							option.selected = true;
 					})
 				} else {
-					let input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'filename'}, column_obj);
-					input_obj.value = entries[row];
+					let input_obj = null;
+					switch(openvpn_options[row]) {
+						case '!filename':
+							input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'Enter a filename'}, column_obj);
+							input_obj.value = entries[row];
+							break;
+						case '!number':
+							input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'number', 'placeholder' : 'Enter a number'}, column_obj);
+							input_obj.value = openvpn_options[row];
+							break;
+						case '!ip':
+							input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'Enter a ip number'}, column_obj);
+							input_obj.value = ''; //openvpn_options[row];
+							break;
+						case '!netmask':
+							input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'Enter a netmask'}, column_obj);
+							input_obj.value = ''; //openvpn_options[row];
+							break;
+						case '!certificates':
+							// TODO: Refuce lag by first rendering the cached data,
+							// and then request a copy to see if it's changed or not.
+							input_obj = create_html_obj('select', {'classList' : 'input'}, column_obj);
+							socket.subscribe('certificates', (json) => {
+								if(typeof json['certificate'] !== 'undefined') {
+									Object.keys(json['certificate']).forEach((cert_id) => {
+										let option = create_html_obj('option', {'value' : cert_id+'.crt', 'innerHTML' : cert_id+'.crt'}, input_obj);
+										if(cert_id == entries[row])
+											option.selected = true;
+									})
+									if(entries[row] !== input_obj.options[input_obj.selectedIndex].value) {
+										// A default-placeholder was found in the config,
+										// and our cert store does not contain it, so update the server
+										// with whatever we have selected here.
+										socket.send({
+											'_module' : 'server',
+											'target' : kwargs['server_name'],
+											'update' : {
+												'cert' : input_obj.options[input_obj.selectedIndex].value
+											}
+										})
+									}
+								}
+							})
+							socket.send({
+								'_module' : 'certificates',
+								'get' : 'certificate'
+							})
+							input_obj.addEventListener('change', () => {
+								console.log('Changed a dropdown?')
+							})
+							break;
+						case '!certificate_authorities':
+							// TODO: Refuce lag by first rendering the cached data,
+							// and then request a copy to see if it's changed or not.
+							input_obj = create_html_obj('select', {'classList' : 'input'}, column_obj);
+							socket.subscribe('certificates', (json) => {
+								if(typeof json['ca'] !== 'undefined') {
+									Object.keys(json['ca']).forEach((ca_id) => {
+										let option = create_html_obj('option', {'value' : ca_id+'.crt', 'innerHTML' : ca_id+'.crt'}, input_obj);
+										if(ca_id == entries[row])
+											option.selected = true;
+									})
+									if(entries[row] !== input_obj.options[input_obj.selectedIndex].value) {
+										// A default-placeholder was found in the config,
+										// and our cert store does not contain it, so update the server
+										// with whatever we have selected here.
+										console.log('Config:', entries[row]);
+										console.log('Selected:', input_obj.options[input_obj.selectedIndex].value)
+										socket.send({
+											'_module' : 'server',
+											'target' : kwargs['server_name'],
+											'update' : {
+												'ca' : input_obj.options[input_obj.selectedIndex].value
+											}
+										})
+									}
+								}
+							})
+							socket.send({
+								'_module' : 'certificates',
+								'get' : 'ca'
+							})
+							input_obj.addEventListener('change', () => {
+								console.log('Changed a dropdown?')
+							})
+							break;
+						case '!private_keys':
+							// TODO: Refuce lag by first rendering the cached data,
+							// and then request a copy to see if it's changed or not.
+							input_obj = create_html_obj('select', {'classList' : 'input'}, column_obj);
+							socket.subscribe('certificates', (json) => {
+								if(typeof json['key'] !== 'undefined') {
+									Object.keys(json['key']).forEach((key_id) => {
+										let option = create_html_obj('option', {'value' : key_id+'.key', 'innerHTML' : key_id+'.key'}, input_obj);
+										if(key_id == entries[row])
+											option.selected = true;
+									})
+									if(entries[row] !== input_obj.options[input_obj.selectedIndex].value) {
+										// A default-placeholder was found in the config,
+										// and our cert store does not contain it, so update the server
+										// with whatever we have selected here.
+										socket.send({
+											'_module' : 'server',
+											'target' : kwargs['server_name'],
+											'update' : {
+												'key' : input_obj.options[input_obj.selectedIndex].value
+											}
+										})
+									}
+								}
+							})
+							socket.send({
+								'_module' : 'certificates',
+								'get' : 'key'
+							})
+							input_obj.addEventListener('change', () => {
+								console.log('Changed a dropdown?')
+							})
+							break;
+						case '!diffie_hellmans':
+							input_obj = create_html_obj('select', {'classList' : 'input'}, column_obj);
+							socket.subscribe('certificates', (json) => {
+								if(typeof json['dh'] !== 'undefined') {
+									Object.keys(json['dh']).forEach((cert_id) => {
+										let option = create_html_obj('option', {'value' : 'cert_id', 'innerHTML' : cert_id}, input_obj);
+										if(cert_id == entries[row])
+											option.selected = true;
+									})
+								}
+							})
+							socket.send({
+								'_module' : 'certificates',
+								'get' : 'dh'
+							})
+							break;
+						case '!tls_auth':
+							input_obj = create_html_obj('select', {'classList' : 'input'}, column_obj);
+							socket.subscribe('certificates', (json) => {
+								if(typeof json['tls_auth'] !== 'undefined') {
+									Object.keys(json['tls_auth']).forEach((cert_id) => {
+										let option = create_html_obj('option', {'value' : 'cert_id', 'innerHTML' : cert_id}, input_obj);
+										if(cert_id == entries[row])
+											option.selected = true;
+									})
+								}
+							})
+							socket.send({
+								'_module' : 'certificates',
+								'get' : 'tls_auth'
+							})
+							break;
+						default:
+							//console.log('Unknown table column option:', openvpn_options[row])
+							input_obj = create_html_obj('div', {'classList' : 'column'}, column_obj);
+							input_obj.innerHTML = openvpn_options[row];
+							break;
+					}
+					//let input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'filename'}, column_obj);
+					//input_obj.value = entries[row];
 				}
 			} else {
 				let input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'filename'}, column_obj);
@@ -326,7 +492,6 @@ class show_login {
 					});
 
 					two_factor_code.focus();
-					console.log();
 				} else if (data['status'] == 'success' && typeof data['token'] !== 'undefined') {
 					localStorage.setItem('obtain.life.token', data['token']);
 					window.location.href = '/';
@@ -391,7 +556,7 @@ class users_overview {
 		Object.keys(json['users']).forEach((user) => {
 			let server = div({'classList' : 'server'}, this.main_area);
 
-			let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
+			let server_header = create_html_obj('div', {'classList' : 'clientHeader'}, server);
 			let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
 			server_title.innerHTML = user
 			let download_conf = create_html_obj('i', {'classList' : 'fas fa-file-archive right blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Download</div>'}, server_header)
@@ -408,7 +573,8 @@ class users_overview {
 				rows,
 				{'classList' : 'table'}, server, (config_option_clicked) => {
 					show_description(config_option_clicked);
-			});
+				}
+			);
 			
 			view_conf.addEventListener('click', () => {
 				socket.send({
@@ -484,7 +650,7 @@ class user_config {
 	parse_payload(json) {
 		let server = div({'classList' : 'server'}, this.main_area);
 
-		let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
+		let server_header = create_html_obj('div', {'classList' : 'clientHeader'}, server);
 		let server_title = create_html_obj('h3', {'classList' : 'title'}, server_header);
 		server_title.innerHTML = json['userid'];
 		let delete_conf = create_html_obj('i', {'classList' : 'fas fa-minus-circle right red cursor fa-content', 'innerHTML' : '<div class="textbutton">Delete</div>'}, server_header)
@@ -563,15 +729,14 @@ class certificate_overview {
 	}
 
 	parse_payload(json) {
-		console.log(json);
 		let certificates = create_html_obj('div', {'classList' : 'certificates'}, this.main_area)
 		Object.keys(json['stores']).forEach((store) => {
 			let certificate = div({'classList' : 'certificate'}, certificates);
 
-			let ca_header = create_html_obj('div', {'classList' : 'serverHeader'}, certificate);
+			let ca_header = create_html_obj('div', {'classList' : 'certificateHeader'}, certificate);
 			let ca_title = create_html_obj('h3', {'classList' : 'title'}, ca_header);
 			ca_title.innerHTML = store + ' store';
-			let cert_add = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Create Certificate</div>'}, ca_header)
+			let cert_add = create_html_obj('i', {'classList' : 'far fa-plus-square right blue cursor fa-content', 'innerHTML' : '<div class="textbutton">Create '+store+'</div>'}, ca_header)
 
 			let table_obj = cert_table(
 				['ID', 'Cert', 'Key'],
@@ -581,15 +746,18 @@ class certificate_overview {
 			});
 			
 			cert_add.addEventListener('click', () => {
-				if(store=='clients') {
+				if(store=='certificate' || store=='key') {
 					let popup_body = create_html_obj('div', {'classList' : 'card'});
 					
 					let popup_header = create_html_obj('div', {'classList' : 'header'}, popup_body);
 					popup_header.innerHTML = 'Select a CA';
 
 					let inputs = create_html_obj('div', {'classList' : 'inputs'}, popup_body);
-					let select_ca = create_html_obj('select', {'classList' : 'input'}, inputs)
-					create_html_obj('option', {'value' : 'ca.key', 'innerHTML' : 'ca.key'}, select_ca);
+					let select_ca = create_html_obj('select', {'classList' : 'input'}, inputs);
+					Object.keys(cert_store['ca']).forEach((key_id) => {
+						console.log(key_id);
+						create_html_obj('option', {'value' : key_id, 'innerHTML' : key_id+'.key'}, select_ca);
+					})
 
 					inputs = create_html_obj('div', {'classList' : 'inputs'}, popup_body);
 					popup_header = create_html_obj('div', {'classList' : 'header'}, popup_body);
@@ -734,7 +902,7 @@ class configuration_overview {
 		let selected_conf = server_config_selector.options[server_config_selector.selectedIndex].value;
 
 		let server = div({'classList' : 'server'}, this.main_area);
-		console.log('Selected:', selected_conf);
+		//console.log('Selected:', selected_conf);
 
 		let server_header = create_html_obj('div', {'classList' : 'serverHeader'}, server);
 		let server_title = create_html_obj('h3', {'classList' : 'title', 'innerHTML' : server_config_selector}, server_header);
@@ -744,9 +912,14 @@ class configuration_overview {
 		let table_obj = table(
 			['Option', 'Value'],
 			json_payload['configs'][selected_conf],
-			{'classList' : 'table'}, server, (config_option_clicked) => {
+			{'classList' : 'table'},
+			server,
+			(config_option_clicked) => {
 				show_description(config_option_clicked);
-		});
+			},
+			{},
+			{'server_name' : selected_conf}
+		);
 
 		server_downloadButton.addEventListener('click', () => {
 			socket.subscribe('server', (json) => {
