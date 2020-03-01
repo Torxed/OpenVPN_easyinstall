@@ -340,7 +340,7 @@ function table(headers, entries, stats, parent, row_click=null, special_columns=
 							socket.subscribe('certificates', (json) => {
 								if(typeof json['dh'] !== 'undefined') {
 									Object.keys(json['dh']).forEach((cert_id) => {
-										let option = create_html_obj('option', {'value' : 'cert_id', 'innerHTML' : cert_id}, input_obj);
+										let option = create_html_obj('option', {'value' : cert_id, 'innerHTML' : cert_id}, input_obj);
 										if(cert_id == entries[row])
 											option.selected = true;
 									})
@@ -356,7 +356,7 @@ function table(headers, entries, stats, parent, row_click=null, special_columns=
 							socket.subscribe('certificates', (json) => {
 								if(typeof json['tls_auth'] !== 'undefined') {
 									Object.keys(json['tls_auth']).forEach((cert_id) => {
-										let option = create_html_obj('option', {'value' : 'cert_id', 'innerHTML' : cert_id}, input_obj);
+										let option = create_html_obj('option', {'value' : cert_id, 'innerHTML' : cert_id}, input_obj);
 										if(cert_id == entries[row])
 											option.selected = true;
 									})
@@ -813,6 +813,36 @@ class certificate_overview {
 					});
 
 					email.focus();
+					//obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
+					//obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
+				} else if(store=='dh') {
+					let popup_body = create_html_obj('div', {'classList' : 'card'});
+					
+					let popup_header = create_html_obj('div', {'classList' : 'header'}, popup_body);
+					popup_header.innerHTML = 'Create Diffie Hellman key';
+
+					let inputs = create_html_obj('div', {'classList' : 'inputs'}, popup_body);
+					let common_name = create_html_obj('input', {'classList' : 'input', 'placeholder' : 'Key name'}, inputs);
+					let key_size_input = create_html_obj('input', {'classList' : 'input', 'placeholder' : 'Key Size'}, inputs);
+
+					popup_body.appendChild(inputs);
+
+					let obj = popup("Generate Diffie Hellman", popup_body, {
+						"OK" : function(div) {
+							let key_size = key_size_input.value;
+							if (key_size.length == 0)
+								key_size = '2048';
+							socket.send({
+								'_module' : 'certificates',
+								'action' : 'generate',
+								'diffie_hellman' : common_name.value,
+								'key_size' : key_size
+							})
+							div.remove();
+						}
+					});
+
+					common_name.focus();
 					//obj.style.marginLeft = '-'+(obj.scrollWidth/2)+'px';
 					//obj.style.marginTop = '-'+(obj.scrollHeight/2)+'px';
 				}

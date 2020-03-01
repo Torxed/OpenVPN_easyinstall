@@ -1,6 +1,14 @@
 import random, os
 from OpenSSL.crypto import load_certificate, load_privatekey, PKey, FILETYPE_PEM, TYPE_RSA, X509, X509Req, dump_certificate, dump_privatekey
+from OpenSSL._util import ffi as _ffi, lib as _lib
 from pathlib import Path
+#from cryptography.hazmat.primitives.asymmetric import dh as diffiehellman
+from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.hazmat.primitives.asymmetric import dh as _dh
+from cryptography.hazmat.backends.interfaces import DHBackend
+from cryptography.hazmat.backends.openssl.backend import backend
+from cryptography.hazmat.primitives.serialization import ParameterFormat
+
 class CA():
 	def __init__(self, key, cert):
 		if type(key) == str:
@@ -35,6 +43,60 @@ class key():
 			self.cert_path = cert
 		
 		self.issued_certificats = {}
+"""
+int DHparams_print_fp(FILE *fp, const DH *x)
+{
+    BIO *b;
+    int ret;
+
+    if ((b = BIO_new(BIO_s_file())) == NULL) {
+        DHerr(DH_F_DHPARAMS_PRINT_FP, ERR_R_BUF_LIB);
+        return 0;
+    }
+    BIO_set_fp(b, fp, BIO_NOCLOSE);
+    ret = DHparams_print(b, x);
+    BIO_free(b);
+    return ret;
+}
+"""
+
+"""
+def DHparams_print_fp(fp, dh):
+	print(dh, type(dh))
+	print(_ffi.string(dh))
+
+def generate_diffie_hellman(key_file, key_size):
+	key_location = './secrets/pki/dh'
+	print(f'Generating DH: {key_location}/{key_file} @ size {key_size}')
+
+	dh = _lib.DH_new()
+
+	_lib.DH_generate_parameters_ex(dh, key_size, 2, _ffi.NULL)
+
+	if not os.path.isdir(os.path.dirname(f'{key_location}/{key_file}.pem')):
+		os.makedirs(os.path.dirname(f'{key_location}/{key_file}.pem'))
+
+	with open(f'{key_location}/{key_file}.pem', 'wb') as dhfile:
+		DHparams_print_fp(dhfile, dh)
+
+	return f'{key_location}/{key_file}.pem'
+"""
+
+# https://stackoverflow.com/questions/39534456/how-to-generate-diffie-hellman-parameters-in-python/60479416#60479416
+def generate_diffie_hellman(key_size):
+	# generator must be 2 or 5.. /shrug
+	DHBackend.generate_dh_parameters(backend, generator=2, key_size=key_size)
+	dh_parameters = _dh.generate_parameters(generator=2, key_size=key_size, backend=backend)
+	return dh_parameters.parameter_bytes(Encoding.PEM, ParameterFormat.PKCS3)
+
+def save_diffie_hellman(key_file, key_data):
+	if not os.path.isdir(os.path.dirname(key_file)):
+		os.makedirs(os.path.dirname(key_file))
+
+	with open(key_file, 'wb') as fh:
+		fh.write(key_data)
+
+	return True
 
 def generate_certificate(key, cert=None, **kwargs):
 	# https://gist.github.com/kyledrake/d7457a46a03d7408da31
@@ -137,18 +199,26 @@ def load_keys(ca_store):
 
 	return key_store
 
+def load_dhs():
+	key_store = {}
+	for key in Path('./secrets/pki/dh').rglob('*.pem'):
+		key_full_path = str(key.resolve().absolute())
+		key_store[key.name[:-4]] = key_full_path
+	return key_store
+
 class parser():
 	def process(self, path, client, data, headers, fileno, addr, *args, **kwargs):
 		print('### Certificates ###\n', data, client)
 
 		ca_store = load_CAs()
 		key_store = load_keys(ca_store)
+		dh_store = load_dhs()
 
 		store = {
 			'ca' : {},
 			'certificate' : {},
 			'key' : {},
-			'dh' : {},
+			'dh' : dh_store,
 			'tls_auth' : {}
 		}
 
@@ -163,10 +233,15 @@ class parser():
 			if 'ca' in data and data['ca'] is not None:
 				## Generate a client certificate and sign it.
 
-				print(ca_store)
 				key, cert = generate_certificate(f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt', join=False, ca=ca_store[data["ca"]], **data["cert_data"])
 				store['certificate'][cert.get_subject().CN] = {'key' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', 'cert' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt'}
 				store['key'][cert.get_subject().CN] = {'key' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.key', 'cert' : f'./secrets/pki/issued/{data["cert_data"]["emailAddress"]}.crt'}
+			elif 'diffie_hellman' in data:
+				key_file = f'./secrets/pki/dh/{data["diffie_hellman"]}.pem'
+				key_data = generate_diffie_hellman(int(data['key_size']))
+				save_diffie_hellman(key_file, key_data)
+				
+				store['dh'][data["diffie_hellman"]] = key_file
 			else:
 				ca_key, ca_cert = generate_certificate(f'./secrets/pki/ca/{data["cert_data"]["cn"]}.key', f'./secrets/pki/ca/{data["cert_data"]["cn"]}.crt', join=False, cn=data['cert_data']['cn'])
 				store['ca'][ca_cert.get_subject().CN] = {'key' : f'./secrets/pki/ca/{data["cert_data"]["cn"]}.key', 'cert' : f'./secrets/pki/ca/{data["cert_data"]["cn"]}.crt'}
