@@ -109,7 +109,8 @@ class parser():
 	def process(self, path, client, data, headers, fileno, addr, *args, **kwargs):
 		print('### Configuration ###\n', data, client)
 		if 'get' in data:
-			if data['get'] == 'overview':
+			if data['get'] == 'server':
+				# TODO: Old legacy code?!
 				reload_config_cache()
 
 				return {'configs' : configs}
@@ -165,3 +166,7 @@ class parser():
 			#print(json.dumps(configs, indent=4))
 			return {'status' : 'success'}
 			return {'configs' : configs} ## <-- Will cuase a loop, because it will trigger a re-render of overview which will reload the cache. So before we do this, we need to move the in-mem configs to disk again before reload is called.
+		else:
+			reload_config_cache()
+
+			return {'configs' : configs}

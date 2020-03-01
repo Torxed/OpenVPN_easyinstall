@@ -224,7 +224,7 @@ function table(headers, entries, stats, parent, row_click=null, special_columns=
 							break;
 						case '!number':
 							input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'number', 'placeholder' : 'Enter a number'}, column_obj);
-							input_obj.value = openvpn_options[row];
+							input_obj.value = entries[row];
 							break;
 						case '!ip':
 							input_obj = create_html_obj('input', {'classList' : 'input', 'type' : 'text', 'placeholder' : 'Enter a ip number'}, column_obj);

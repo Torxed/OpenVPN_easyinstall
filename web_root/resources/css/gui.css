@@ -295,6 +295,8 @@ h3 {
 .title {
 	margin-bottom: 5px;
 	margin-top: 5px;
+	flex-grow: 1;
+    margin-right: 10px;
 }
 
 
